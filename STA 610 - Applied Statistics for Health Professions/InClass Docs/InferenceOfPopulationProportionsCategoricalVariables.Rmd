@@ -1,0 +1,353 @@
+---
+title: "Inference of Population Proportions Categorical Variables"
+author: "Arjun Mannem"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+---
+
+#### Installing necessary packages
+
+```{r}
+# Load necessary packages
+library(tidyverse)
+library(ggthemes)
+library(flextable)
+library(janitor)
+library(broom)
+
+```
+
+#### We can set default theme settings for plots, and load some functions to simplify table customization and creation using the code below.
+
+```{r}
+# Set ggplot theme for visualizations
+theme_set(ggthemes::theme_few())
+
+# Set options for flextables
+set_flextable_defaults(na_str = "NA")
+
+# Load function for printing tables nicely
+source("https://raw.githubusercontent.com/dilernia/STA323/main/Functions/make_flex.R")
+```
+
+
+
+# Chi^2^-Test of Independence
+
+**What are the response and explanatory variables in each scenario?**
+
+1. **Response Variable**: Parkinson’s disease
+
+   **Explanatory Variable**: Mutation in the SNCA gene
+
+2. **Response Variable**: Preferred smartphone brand
+
+   **Explanatory Variable**: Age group of customers (young, middle-aged, and senior)
+   
+3. **Response Variable**: Visitor to the site makes a purchase or not
+
+   **Explanatory Variable**: Layout type of a website (layout A, B, or C)
+
+4. **Response Variable**: Risk of a skin reaction when taking abacavir, a drug for HIV infections
+
+   **Explanatory Variable**: Mutation in the HLA-B gene
+
+
+
+
+#### Let’s import data from the website GitHub to use for this activity, and print 7 randomly selected rows from the data.
+
+```{r}
+# Importing data from course GitHub page
+titanic <- read_csv("https://raw.githubusercontent.com/dilernia/STA323/main/Data/titanic.csv")
+
+set.seed(1994)
+
+# Printing sample of 7 rows from data set
+titanic %>%  
+  dplyr::sample_n(size = 7) %>% 
+  make_flex(caption = "Randomly selected people who were aboard the Titanic.")
+```
+
+
+**What are the response and explanatory variables in this scenario?**
+
+**Response Variable**: Survival Status (Yes/No)
+
+**Explanatory Variable**: Passenger class (Third, Second, or First Class)
+
+**Formally state the hypotheses for our question of interest.**
+
+H0: There is not a relationship between a passenger's class and whether or not they survived the sinking of the Titanic.
+
+Ha: There is a relationship between a passenger's class and whether or not they survived the sinking of the Titanic.
+
+
+
+#### Let’s obtain some output relevant to our question of interest.
+
+```{r}
+# Creating contingency table
+contingencyTable <- titanic %>% 
+  janitor::tabyl(var1 = passenger_class, var2 = survived)
+
+# Printing table
+contingencyTable %>% 
+  make_flex(caption = "Observed counts for survival status by passenger class", ndigits = 0)
+```
+
+
+#### We can create a clustered bar chart to visualize the same information conveyed in the contingency table.
+
+```{r}
+# Creating a clustered bar chart
+titanic %>% 
+  dplyr::count(passenger_class, survived, .drop = FALSE) %>% 
+    dplyr::filter(!is.na(passenger_class), !is.na(survived)) %>% 
+  mutate(passenger_class = fct_reorder(passenger_class, n)) %>% 
+  ggplot(aes(x = passenger_class, y = n,
+             fill = survived)) + 
+  geom_col(position="dodge", color = "black") +
+  scale_fill_few() +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.10))) +
+    labs(title = "Distribution of survival by passenger class",
+       y = "Frequency",
+       x = "Survived",
+       caption = "Data source: Stanford University",
+       fill = "Survived")
+```
+
+#### A dumbbell chart can also be used to create the relationship between two categorical variables.
+
+```{r}
+# Creating dumbbell chart of survival status by passenger class
+titanic %>% 
+  dplyr::count(survived, passenger_class, .drop = FALSE) %>% 
+  dplyr::filter(!is.na(survived), !is.na(passenger_class)) %>% 
+  ggplot(aes(x = n, y = passenger_class,
+             color = survived, fill = survived)) + 
+  geom_line(aes(group = passenger_class), color = "black") +
+    geom_point(pch = 21, color = "black", size = 5) +
+  scale_fill_few() +
+      labs(title = "Survival status by passenger class",
+           x = "Frequency",
+           y = "Passenger class",
+           fill = "Survived",
+           caption = "Data source: Stanford University") +
+  theme(legend.position = "bottom",
+        strip.background.y = element_rect(linetype = "solid", color = "black"))
+```
+
+**Based on the clustered bar chart and dumbbell plot, does there appear to be a difference in the likelihood of survival by the class of the passengers?**
+
+Yes, there are clear differences in the likelihood of survival based on the class of the passengers.
+First class passengers has the greatest survival chances and the third class passengers has the lowest chances of survival.
+
+#### Implement the Chi^2^-test of independence.
+
+```{r}
+# Implementing a chi-square test of independence
+chi2Res <- chisq.test(contingencyTable, tabyl_results = TRUE)
+# Printing table of expected counts
+chi2Res$expected %>% 
+  make_flex(caption = "Expected counts for survival status by passenger class", ndigits = 1)
+```
+
+#### Results of the test
+
+```{r}
+# Printing model output
+chi2Res %>% 
+  broom::tidy() %>% 
+  make_flex(caption = "Results of the chi-square test of independence",
+            ndigits = 2)
+```
+
+**State each assumption for the 2-test of independence, and indicate whether or not each assumption is met, citing specific evidence from the output obtained.**
+
+Some conditions must be met to conduct a valid 2-test of independence:
+
+- Independent observations (commonly violated when observations consist of repeated measurements across time)
+
+*Since these were all separate passengers, we will consider this sufficiently met.*
+
+- Both variables being studied must be categorical
+
+*Both survival status and passenger class are categorical, so this is met.*
+
+- All expected counts under the null hypothesis should be at least 5
+
+*The smallest expected count is 70.9 which is larger than 5, so this is met.*
+
+**What are the degrees of freedom associated with the 2-test here?**
+
+N-1 = 2
+
+
+**State our test statistic, p-value, decision, and conclusion in the context of the problem testing at the 5% significance level, citing specific evidence from the obtained output.**
+
+*test statistic*: 101.22
+
+*p-value*: <2e-16
+
+*decision*: Reject the H0 (null hypothesis), since the p-value is less than 0.05 
+
+*interpretation of the result in context*: We have sufficient evidence that there is a relationship between a passenger's class and whether or not they survived the sinking of the Titanic at the 5% significance level.
+
+
+
+## Inference of population proportions
+
+#### Confidence interval for p
+
+**What does 1-pHat represent in general?**
+
+1 - pHat represents the proportion of failures.
+
+
+
+**Provide and interpret a 95% confidence interval for the survival of third-class passengers based on the Titanic data using the code below.**
+
+Calculating 95% confidence interval for p
+
+```{r}
+# Calculating confidence interval for p
+third_class_counts <- contingencyTable %>% 
+  dplyr::filter(passenger_class == "Third") %>% 
+  dplyr::select(c("Yes", "No"))
+
+third_surv_CI <- prop.test(x = third_class_counts$Yes,
+                           n = sum(third_class_counts),
+                           conf.level = 0.95,
+                           correct = FALSE)
+
+# Printing table of results
+third_surv_CI %>% 
+  broom::tidy() %>% 
+  make_flex(caption = "Confidence interval for proportion of 3rd-class passengers who survived on the Titanic",
+            ndigits = 3)
+
+```
+
+
+The sample proportion, pHat, is 0.244, which is the proportion of third class passengers who survived the sinking of the Titanic.
+
+Lower bound: 0.208
+
+Higher bound: 0.284
+
+We are 95% confident that the proportion of third class passengers who survive luxury cruise ships sinking in the Atlantic is between 0.208 and 0.284.
+
+
+**Is this a valid confidence interval? Provide specific evidence to support your conclusion.**
+
+Some conditions must be met to construct a valid Wald confidence interval of a population proportion:
+- Independent observations (commonly violated when observations consist of repeated measurements across time)
+
+*Since these were all separate passengers, we will consider this sufficiently met.*
+
+- Variable being studied must be categorical
+
+*The survival status (Yes/No) is a binary categorical variable, so this is met.*
+
+- Number of successes should be at least 5 and number of failures should be at least 5
+
+*Since the number of failures, 368, and the number of successes 119, are both greater than 5, this is met.*
+
+
+**Provide and interpret a 95% confidence interval for the survival of first-class passengers based on the Titanic data, reproducing the output below.**
+
+```{r}
+# Calculating confidence interval for p
+first_class_counts <- contingencyTable %>% 
+  dplyr::filter(passenger_class == "First") %>% 
+  dplyr::select(c("Yes", "No"))
+
+first_surv_CI <- prop.test(x = first_class_counts$Yes,
+                           n = sum(first_class_counts),
+                           conf.level = 0.95,
+                           correct = FALSE)
+
+# Printing table of results
+first_surv_CI %>% 
+  broom::tidy() %>% 
+  make_flex(caption = "Confidence interval for proportion of 1st-class passengers who survived on the Titanic",
+            ndigits = 3)
+
+```
+
+The sample proportion, pHat, is 0.630, which is the proportion of first class passengers who survived the sinking of the Titanic.
+
+Lower bound: 0.563
+
+Higher bound: 0.691
+
+**Provide and interpret a 95% confidence interval for the survival of first-class passengers based on the Titanic data, reproducing the output below.**
+
+We are 95% confident that the proportion of first class passengers who survive luxury cruise ships sinking in the Atlantic is between 0.563 and 0.691.
+
+**Is this a valid confidence interval? Provide specific evidence to support your conclusion.**
+
+Some conditions must be met to construct a valid Wald confidence interval of a population proportion:
+- Independent observations (commonly violated when observations consist of repeated measurements across time)
+
+*Since these were all saparate passengers, we will consider this sufficiently met.*
+
+- Variable being studied must be categorical
+
+*The survival status (Yes/No) is a binary categorical variable, so this is met.*
+
+- Number of successes should be at least 5 and number of failures should be at least 5
+
+*Since the number of failures, 80, and the number of successes 136, are both greater than 5, this is met.*
+
+
+
+**What is the margin of error for this interval?**
+
+`Margin of error = (upper bound - lower bound)/2` = (0.691 - 0.563)/2 = 0.064
+
+
+## Confidence interval for p1−p2
+
+
+#### Provide and interpret a 95% confidence interval for the difference in the survival rates of first-class and third-class passengers based on the Titanic data using the code below.
+
+```{r}
+# Calculating confidence interval for p1 - p2
+class_counts <- contingencyTable %>% 
+  dplyr::filter(passenger_class %in% c("First", "Third")) %>% 
+  dplyr::select(c("Yes", "No"))
+
+diff_surv_CI <- prop.test(x = as.matrix(class_counts),
+                           n = colSums(class_counts),
+                           conf.level = 0.95,
+                           correct = FALSE)
+
+# Printing table of results
+diff_surv_CI %>% 
+  broom::tidy() %>% 
+  make_flex(caption = "Confidence interval for difference in the survival rates of 1st-class and 3rd-class passengers",
+            ndigits = 3)
+
+```
+
+- confidence interval limits : (0.310, 0.460)
+
+We are 95% confidence that first-class passengers on sinking cruise ships in the Atlantic have a survival rate that is between 31% and 46% greater than that of third-class passengers.
+
+
+**Is this a valid confidence interval? Provide specific evidence to support your conclusion.**
+
+First-class passengers: 80 died and 136 survived
+
+Third-class passengers: 368 died and 119 survived
+
+Since all four of these numbers are at least 5, we have a sufficient number of successes and failures for the confidence interval to be valid.
+
+**Do the results of the 2-test and 95% confidence interval of the difference align? Why or why not?**
+
+Yes, since the survival rates differed between first and third class passengers (0 is outside the interval 0.310 and 0.460), this aligns with statistically significant result of the chi-squared test.  
+

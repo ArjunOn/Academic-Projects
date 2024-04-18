@@ -1,0 +1,479 @@
+---
+title: "ANOVA_activity"
+author: "Mallikarjuna Mannem"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Install packages
+
+```{r}
+# Load necessary packages
+library(tidyverse)
+library(ggthemes)
+library(flextable)
+library(broom)
+library(ggfortify)
+
+```
+
+```{r}
+# Set ggplot theme for visualizations
+theme_set(ggthemes::theme_few())
+
+# Set options for flextables
+set_flextable_defaults(na_str = "NA")
+
+# Load function for printing tables nicely
+source("https://raw.githubusercontent.com/dilernia/STA323/main/Functions/make_flex.R")
+```
+
+## GPA example
+
+```{r}
+# Importing fake GPA data
+simGPA <- readr::read_csv("https://raw.githubusercontent.com/dilernia/STA323/main/Data/simGPA.csv")
+
+# Creating vector of colors
+schoolColors <- setNames(c("#4E2583", "#5470c0", "#aa152b"),
+                         c("AU", "GVSU", "SVSU"))
+set.seed(1994)
+
+# Printing random rows of data set
+simGPA %>% 
+  dplyr::filter(University %in% c("GVSU", "SVSU")) %>% 
+  slice_sample(n = 7) %>% 
+  make_flex()
+```
+
+We can create side-by-side box plots to compare the GPAs of two the
+universities
+
+```{r}
+# Creating side-by-side box plots
+twoSampGG <- simGPA %>% 
+  dplyr::filter(University %in% c("GVSU", "SVSU")) %>% 
+  ggplot(aes(x = University, y = GPA, fill = University)) + 
+  geom_boxplot() + 
+scale_fill_manual(values = schoolColors) + 
+    theme(legend.position = "none")
+  
+twoSampGG
+```
+
+we can also calculate summary statistics for each university
+
+```{r}
+# Calculating descriptive statistics
+quantStats <- simGPA %>% 
+  dplyr::filter(University %in% c("GVSU", "SVSU")) %>% 
+  group_by(University) %>% 
+  summarize(
+  Minimum = min(GPA, na.rm = TRUE),
+  Q1 = quantile(GPA, na.rm = TRUE, probs = 0.25),
+  M = median(GPA, na.rm = TRUE),
+  Q3 = quantile(GPA, na.rm = TRUE, probs = 0.75),
+  Maximum = max(GPA, na.rm = TRUE),
+  Mean = mean(GPA, na.rm = TRUE),
+  R = Maximum - Minimum,
+  s = sd(GPA, na.rm = TRUE),
+  n = n()
+)
+
+# Printing table of statistics
+quantStats %>% 
+  make_flex(caption = "Summary statistics for student GPAs by university.")
+```
+
+we consider the case in which we have a third university we want to
+compare.
+
+```{r}
+# Creating side-by-side box plots
+threeSampGG <- simGPA %>% 
+  ggplot(aes(x = University, y = GPA, fill = University)) + 
+  geom_boxplot() + 
+scale_fill_manual(values = schoolColors) + 
+    theme(legend.position = "none")
+  
+threeSampGG
+```
+
+we can calculate summary statistics
+
+```{r}
+# Calculating descriptive statistics
+quant3Stats <- simGPA %>% 
+  group_by(University) %>% 
+  summarize(
+  Minimum = min(GPA, na.rm = TRUE),
+  Q1 = quantile(GPA, na.rm = TRUE, probs = 0.25),
+  M = median(GPA, na.rm = TRUE),
+  Q3 = quantile(GPA, na.rm = TRUE, probs = 0.75),
+  Maximum = max(GPA, na.rm = TRUE),
+  Mean = mean(GPA, na.rm = TRUE),
+  R = Maximum - Minimum,
+  s = sd(GPA, na.rm = TRUE),
+  n = n()
+)
+
+# Printing table of statistics
+quant3Stats %>% 
+  make_flex(caption = "Summary statistics for student GPAs by university.")
+```
+
+## survival example
+
+let's first import the data into R
+
+```{r}
+# Loading survival data
+cancerSurvival <- readr::read_csv("https://raw.githubusercontent.com/dilernia/STA323/main/Data/CancerSurvival.csv")
+```
+
+printing 8 randomly selected rows from the data set
+
+```{r}
+set.seed(1994)
+
+# Printing random rows of data set
+cancerSurvival %>%
+  slice_sample(n=8) %>%
+  make_flex()
+```
+
+```{r}
+# Creating side-by-side box plots
+cancerSurvival %>% 
+  ggplot(aes(x = Organ, y = Survival, fill = Organ)) + 
+  geom_boxplot() + 
+  labs(y = "Survival time (days)",
+       title = "Duration of survival from time of diagnosis") +
+  scale_fill_viridis_d() +
+    theme(legend.position = "none")
+```
+
+Next, we calculate summary statistics for the survival of each cancer
+type
+
+```{r}
+# Calculating descriptive statistics
+quant3Stats <- cancerSurvival %>% 
+  group_by(Organ) %>% 
+  summarize(
+  Minimum = min(Survival, na.rm = TRUE),
+  Q1 = quantile(Survival, na.rm = TRUE, probs = 0.25),
+  M = median(Survival, na.rm = TRUE),
+  Q3 = quantile(Survival, na.rm = TRUE, probs = 0.75),
+  Maximum = max(Survival, na.rm = TRUE),
+  Mean = mean(Survival, na.rm = TRUE),
+  R = Maximum - Minimum,
+  s = sd(Survival, na.rm = TRUE),
+  n = n()
+)
+
+# Printing table of statistics
+quant3Stats %>% 
+  make_flex(caption = "Summary statistics for survival times in days by cancer type.")
+```
+
+**Based on the output obtained, which cancer type has the longest
+survival on average and what is the corresponding average survival
+time?**
+
+Breast cancer,1395.91
+
+**Which cancer type has the most variability in its survival times?
+Why?**
+
+breast cancer since R-value and s-value are more for breast cancer.
+
+**What was the shortest duration of survival for any individual
+person,and what was the longest? Specify which type of cancer each
+person had.**
+
+Shortest duration of survival is for the individuals with 20 days with
+Bronchus and Colon cancer. Longest is for the individual with breast
+cancer and survival duration of 3808 days.
+
+**Provide a statement of the group means formulation of the One-Way
+ANOVA model.**
+
+The group effects formulation of ANOVA model in general is:
+$$Y_{ij}=\mu_i+\varepsilon_{ij}$$ Response=Grand Mean +Group Effect
++Error Term $Y_{ij}$ : is the survival time in days for the jth
+observation of the ith group \$\mu\_i : mean survival time of ith cancer
+type $\varepsilon_{ij}$ : independent and normally distributed error
+terms
+
+###Hypotheses
+
+Our hypotheses are given by
+
+Ho: μ1 = μ2 = μ3 = μ4 = μ5 vs. Ha: μi ≠ μj for some i,j
+
+where μ1 is the average duration of survival in days for breast cancer
+patients, μ2 for bronchus cancer, μ3 for colon cancer, μ4 for ovarian
+cancer, and μ5 for stomach cancer.
+
+Alternative statement of hypotheses:
+
+Our hypotheses are given by
+
+Ho: μ1 = μ2 = μ3 = μ4 = μ5 vs. Ha: μi ≠ μj, for some i,j
+
+where μi is the average duration of survival in days for the ith cancer
+type for i=1,2,...,5.
+
+**What are the response and explanatory variables for this One-Way
+ANOVA?**
+
+r: survival time in days e: cancer type
+
+```{r}
+# Fitting One-Way ANOVA model
+survivalModel <- aov(Survival ~ Organ, data = cancerSurvival)
+
+# Printing ANOVA table
+survivalModel %>% 
+  broom::tidy() %>% 
+  make_flex(caption = "ANOVA table for survival duration in days by cancer type")
+```
+
+-   SSGroups = 11,535,760.52, this is the total variability in the
+    survival times of the patients explained by their cancer type
+
+-   SSE = 26,448,144.48, this is the total variability in the survival
+    times of the patients not explained by their cancer type
+
+### Assumptions
+
+1.  **Have the same standard deviation within each group(implies equal
+    variances, also known as homoskedasticity)**
+
+```{r}
+autoplot(survivalModel, which = 1, label.repel = TRUE)@plots[[1]]
+```
+
+There is an outward fanning pattern in the residual by fitted value
+plot, indicating that the homoskedasticity assumption is violated.
+
+**Ratio of standard deviations**
+
+Smax = 1238.97
+
+Smin = 209.86
+
+1238.97 / 209.86 = 5.90 which is greater than 2, so this indicates that
+the homoskedasticity assumption is violated.
+
+2.  **Be normally distributed**
+
+**QQ plot**
+
+```{r}
+# Quantile-quantile (QQ) plot
+autoplot(survivalModel, which = 2, label.repel = TRUE)@plots[[1]]
+
+```
+
+There are many points on the QQ plot that stray far from the diagonal
+line through the origin, indicating that the normality assumption is
+violated.
+
+**Histogram of the residuals**
+
+```{r}
+# Histogram of the residuals
+survivalModel %>% 
+  broom::augment() %>% 
+  ggplot(aes(x = .resid)) + 
+  geom_histogram(color = "white") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.10))) +
+  labs(title = "Distribution of residuals",
+       x = "Residual",
+       y = "Frequency")
+```
+
+The distribution is right-skewed, indicating that the normality
+assumption is violated.
+
+3.  **Be independent**
+
+since these are measurements for seperate individuals, we will consider
+this assumption to be sufficiently met.
+
+The assumptions were violated, so truly the results of the ANOVA model
+are unavailable.
+
+However, for demonstration purpose we will finish conducting the overall
+F-test.
+
+**Provide the value of the test statistic, p-value, and decision for the overall F-test, citing specific evidence from the obtained output.**
+
+**Test statistic**: F = 6.43
+
+**p-value**: 0.00023
+
+**Decision**: Reject Ho since the p-value is less than 0.05
+
+**Provide our interpretation based on our stated decision in the context of the problem.**
+
+Since the p-value is less than 0.05, we have sufficient evidence that at
+least two cancer types differ in their average survival time in days at
+the 5% significance level.
+
+```{r}
+# Calculating log-transformation of the survival times
+cancerSurvival <- cancerSurvival %>% 
+  dplyr::mutate(logSurvival = log(Survival))
+# Creating side-by-side box plots
+cancerSurvival %>% 
+    ggplot(aes(x = Organ, y = logSurvival, fill = Organ)) + 
+    geom_boxplot() + 
+    labs(y = "Log survival time (days)",
+         title = "Duration of survival from time of diagnosis") +
+    scale_fill_viridis_d() +
+    theme(legend.position = "none")
+```
+
+*Fit a One-Way ANOVA model using a log transformation of the survival times*
+
+```{r}
+# Fitting One-Way ANOVA model
+logSurvivalModel <- aov(logSurvival ~ Organ, data = cancerSurvival)
+
+# Printing ANOVA table
+logSurvivalModel %>% 
+  broom::tidy() %>% 
+  make_flex(caption = "ANOVA table for log survival duration in days by cancer type")
+```
+
+**Checking assumptions for the log transformation model**
+
+```{r}
+# Calculating descriptive statistics
+quantStats <- cancerSurvival %>% 
+  group_by(Organ) %>% 
+  summarize(
+  Minimum = min(logSurvival, na.rm = TRUE),
+  Q1 = quantile(logSurvival, na.rm = TRUE, probs = 0.25),
+  M = median(logSurvival, na.rm = TRUE),
+  Q3 = quantile(logSurvival, na.rm = TRUE, probs = 0.75),
+  Maximum = max(logSurvival, na.rm = TRUE),
+  Mean = mean(logSurvival, na.rm = TRUE),
+  R = Maximum - Minimum,
+  s = sd(logSurvival, na.rm = TRUE),
+  n = n()
+)
+
+# Printing table of statistics
+quantStats %>% 
+  make_flex(caption = "Summary statistics for log duration of survival from time of diagnosis by cancer type.")
+```
+
+## Checking assumptions
+
+**Homoskedasticity**
+
+since 1.65/0.95 = 1.736842 is less than 2, and since the vertical spread
+is fairly constant in the residual by fitted value plot, the
+homoskedasticity assumption is met for the log-transformed model.
+
+**normality**
+
+since the points in the QQ plot do not stray far from the diagonal line,
+this indicates that the normality assumuption is met for the
+log-transformed model.
+
+Moreover, since the histogram unimodal and only very slightly
+left-skewed, this together with the QQ plot indicates that the normality
+assumption is met for the log-transformed model.
+
+Overall, the assumptions are now met, so the results of the ANOVA model
+for the log-transformed values are reliable.
+
+**Test statistic**: F = 4.29
+
+**p-value**: 0.0041
+
+**Decision**: Reject Ho since the p-value is less than 0.05
+
+##Provide our interpretation based on our stated decision in the context
+of the problem.
+
+Since the p-value is less than 0.05, we have sufficient evidence that at
+least two cancer types differ in their average survival time in days at
+the 5% significance level.
+
+## Post-Hoc Analysis
+
+**Provide and interpret the confidence interval for the average log
+survival of patients with breast cancer based on the log transformed
+output**
+
+confidence limits: (5.84,7.28)
+
+We are 95% confident that the mean log survival time in days for breast
+cancer patients is between 5.84 and 7.28
+
+**A better interpretation after having used a log-transformation**
+
+We are 95% confident that the mean survival time in days for breast
+cancer patients is between 344 and 1451 days.
+
+Next we obtain post-havoc output to compare pairs of groups
+
+```{r}
+# Conducting post-hoc analysis using Tukey's HSD for pairwise differences
+pairwisePostHoc <- TukeyHSD(logSurvivalModel)
+
+# Printing post-hoc output
+pairwisePostHoc %>% 
+  broom::tidy() %>% 
+  make_flex(caption = "Pairwise 95% confidence intervals for differences between cancer types in terms of average log survival in days.")
+```
+
+*From row 1):*
+
+we have sufficient evidence that breast cancer patients have a longer
+log survival time in days on average, than bronchus cancer patients.
+
+c limits: (-2.91, -0.30)
+
+we are 95% confident that the mean log duration of survival in days for
+bronchus cancer patients is between 0.30 and 2.91 less than that of
+breast cancer patients
+
+*From row 4):*
+
+we have sufficient evidence that breast cancer patients have a longer
+log survival time in days on average, than stomach cancer patients.
+
+C limits: (-2.97, -0.21)
+
+we are 95% confident that the mean log duration of survival in days for
+stomach cancer patients is between 0.21 and 2.97 less than that of
+breast cancer patients.
+
+**we will not have to do this back-transformation on exam**
+
+**From row 1):**
+
+we have sufficient evidence that breast cancer patients have a longer
+survival time in days on average, than bronchus cancer patients.
+
+ca limits: log-scale (2.91, 0.30) ---\> ---\> (18.356799, 1.349859)
+
+we are 95% confident that the mean duration of survival in days for
+breast cancer patients is between 1.3 and 18.3 times/ that of bronchus
+cancer patients.

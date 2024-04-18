@@ -1,0 +1,462 @@
+---
+title: "Multi Linear Regression Activity"
+author: "Arjun Mannem"
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r}
+# Load necessary packages
+library(tidyverse)
+library(ggthemes)
+library(flextable)
+library(corrr)
+library(ggfortify)
+library(broom)
+library(car)
+```
+
+Set default theme settings for plots, and load a function to simplify table customization and creation using the code below.
+
+```{r}
+# Set ggplot theme for visualizations
+theme_set(ggthemes::theme_few())
+
+# Set default ggplot2 colors
+my_palette <- ggthemes::colorblind_pal()(8)[c(4, 6:8, 2:3, 5, 1)]
+  
+assign("scale_colour_discrete", function(..., values = my_palette) scale_colour_manual(..., values = values), globalenv())
+
+assign("scale_fill_discrete", function(..., values = my_palette) scale_fill_manual(..., values = values), globalenv())
+
+# Set options for flextables
+set_flextable_defaults(na_str = "NA")
+
+# Load function for printing tables nicely
+source("https://raw.githubusercontent.com/dilernia/STA323/main/Functions/make_flex.R")
+
+# Load function for visualizing VIF & GVIF values
+source("https://raw.githubusercontent.com/dilernia/STA323/main/Functions/vif_plot.R")
+```
+
+## Multiple Linear Regression (MLR)
+
+**What are the response and predictor variables for examples a. and b., and what are the types of each predictor variable (e.g., categorical or quantitative)?**
+
+a. Predicting the selling price of houses using characteristics such as the size in square feet, number of bedrooms, number of bathrooms, and year it was built. 🏠
+
+**Response Variable**: selling price of houses (y; quantitative)
+
+**Predictor Variable**:size in square feet (x1; quantitative), number of bedrooms(x2; quantitative), number of bathrooms(x3; quantitative), and year it was built(x4; quantitative).
+
+b. Forecasting the total sales of a product for a company using advertising expenses, the price of the product, the previous sales numbers for that product, and the time of year. 📈
+
+**Response Variable**: total sales of a product (y; quantitative)
+
+**Predictor Variable**: advertising expenses (x1; quantitative), the price of the product (x2; quantitative), the previous sales numbers for that product (x3; quantitative), and the time of year(x4; quantitative)
+
+c. Exploring the relationship between employee salaries and factors such as education level, years of experience, job title, and gender. 💼 💸
+
+**Response Variable**: employee salaries (y; quantitative)
+
+**Predictor Variable**: education level (x1; categorical), years of experience (x2; quantitative), job title (x3; categorical), and gender (x4; categorical).
+
+d. Constructing a model to determine what a typical blood-pressure should be for a patient using information such as the patient’s age, sex, and height. ⚕️🏥
+
+**Response Variable**: blood-pressure (y; quantitative)
+
+**Predictor Variable**: patient’s age (x1; quantitative), sex (x2; categorical), and height (x3; quantitative).
+
+
+
+### Great Lakes Data Example
+
+```{r}
+# Importing data from GitHub & clean column names
+greatLakes <- read_csv("https://raw.githubusercontent.com/dilernia/STA323/main/Data/GreatLakesData.csv",
+                       na = c("", "NA", ".")) %>% 
+  janitor::clean_names() %>% 
+  dplyr::mutate(time_edt = as.character(time_edt))
+
+dataDictionary <- tibble(Variable = colnames(greatLakes),
+                         Description = c("Buoy ID number",
+                                         "Location of buoy",
+                                         "Owner of buoy",
+                                         "Time of measurement",
+                                         "Water temperature in Fahrenheit",
+                                         "Wind speed in knots",
+                                         "Direction of wind",
+                                         "Peak wave height in feet",
+                                         "Great Lake",
+                                         "Date of measurement"),
+                         Type = map_chr(greatLakes, .f = function(x) {ifelse(is.numeric(x), "Quantitative", "Categorical")}))
+
+# Printing data dictionary
+dataDictionary %>% 
+  make_flex(caption = "Data dictionary for Great Lakes data.")
+
+```
+
+
+Let’s start with some exploratory data analysis to familiarize ourselves with the data. Below are 5 randomly selected rows from the data, a few scatter plots, and tables of summary statistics.
+
+```{r}
+# Printing random 5 rows of data
+greatLakes %>% 
+  drop_na() %>% 
+  slice_sample(n = 5) %>%
+  make_flex(caption = "Randomly selected rows from the Great Lakes data.")
+```
+
+
+```{r}
+# Creating scatter plot of wave height by wind speed
+greatLakes %>% 
+  ggplot(aes(x = wind_kts, 
+             y = waves_ft)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) +
+    labs(title = "Wave height by wind speed",
+       y = "Peak wave height (feet)",
+       x = "Wind speed (knots)",
+       caption = "Data source: Great Lakes Observing System")
+```
+
+```{r}
+# Creating scatter plot of wave height by temperature
+greatLakes %>% 
+  ggplot(aes(x = water_f, 
+             y = waves_ft)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Wave height by water temperature",
+       y = "Peak wave height (feet)",
+       x = "Water temperature (F)",
+       caption = "Data source: Great Lakes Observing System")
+```
+
+
+```{r}
+# Calculating correlations
+corTable <- greatLakes %>% corrr::correlate(diagonal = 1)
+
+# Printing table of correlations
+corTable %>% 
+  make_flex(caption = "Table of pairwise correlations.")
+```
+
+
+```{r}
+# Calculating descriptive statistics stratified by lake
+lakeStats <- greatLakes %>% 
+  group_by(lake) %>% 
+  summarize(
+  N = n(),
+  Minimum = min(waves_ft, na.rm = TRUE),
+  Q1 = quantile(waves_ft, na.rm = TRUE, probs = 0.25),
+  Median = median(waves_ft, na.rm = TRUE),
+  Q3 = quantile(waves_ft, na.rm = TRUE, probs = 0.75),
+  Maximum = max(waves_ft, na.rm = TRUE),
+  Mean = mean(waves_ft, na.rm = TRUE),
+  Range = Maximum - Minimum,
+  SD = sd(waves_ft, na.rm = TRUE),
+)
+
+# Printing table of statistics stratified by lake
+lakeStats %>% 
+  make_flex(caption = "Summary statistics for wave heights in feet stratified by lake.")
+```
+
+
+```{r}
+# Calculating descriptive statistics stratified by date
+dateStats <- greatLakes %>% 
+  group_by(date) %>% 
+  summarize(
+  N = n(),
+  Minimum = min(waves_ft, na.rm = TRUE),
+  Q1 = quantile(waves_ft, na.rm = TRUE, probs = 0.25),
+  Median = median(waves_ft, na.rm = TRUE),
+  Q3 = quantile(waves_ft, na.rm = TRUE, probs = 0.75),
+  Maximum = max(waves_ft, na.rm = TRUE),
+  Mean = mean(waves_ft, na.rm = TRUE),
+  Range = Maximum - Minimum,
+  SD = sd(waves_ft, na.rm = TRUE),
+)
+# Printing table of statistics stratified by date
+dateStats %>% 
+  make_flex(caption = "Summary statistics for wave heights in feet stratified by date.")
+```
+
+
+**Based on the scatter plot and correlations, what can we say about the relationship between the wind speed in knots and the observed wave heights in feet?**
+
+There is a positive and linear relationship between peak wave heights in feet and the wind speeds in knots (r = 0.41)
+
+**Based on the scatter plot and correlations, what can we say about the relationship between the water temperature in Fahrenheit and the observed wave heights in feet?**
+
+There is no clear relationship between the peak wave heights in feet and the temperature in Fahrenheit (r = 0.21).
+
+**Provide a statement of our assumed / theoretical multiple linear regression model using the wave height (feet) as our response and the surface temperature of the water (f) and the wind speed (mph) as our predictors.**
+
+
+The theoretical or assumed MLR model is
+
+y= β0 + β1x1 + β2x2 +𝜀,
+
+where:
+
+y represents the peak wave height in feet
+
+x1 represents the wind speed in knots
+
+x2 represents the temperature in Fahrenheit
+
+𝜀 is the independent and normally distributed error term
+
+
+
+
+Next let’s take a look at some diagnostic plots to see how model assumptions look.
+
+```{r}
+
+# Fitting two-predictor multiple linear regression model
+mlrModel <- lm(waves_ft ~ wind_kts + water_f,
+                data = greatLakes)
+
+# Creating diagnostic plots
+
+# Residual by fitted value plot
+autoplot(mlrModel, which = 1, label.repel = TRUE)@plots[[1]]
+
+# Quantile-quantile (QQ) plot
+autoplot(mlrModel, which = 2, label.repel = TRUE)@plots[[1]]
+
+# Cook's Distance plot
+autoplot(mlrModel, which = 4, label.repel = TRUE)@plots[[1]]
+
+# Standardized residuals by leverage
+autoplot(mlrModel, which = 5, label.repel = TRUE)@plots[[1]]
+
+# Variance inflation values
+vif_plot(mlrModel)
+
+```
+
+**Indicate if each assumption for fitting the multiple linear regression model is met, providing specific evidence to support your conclusions from the obtained output.**
+
+**Random Sample**: We must assume that we have a random sample.
+
+**Normality**: *the residuals must be normally distributed.*
+*Checked using a histogram or quantile-quantile (QQ) plot of the residuals. A fairly bell-shaped distribution in the histogram supports normality, and the points not straying far from the diagonal line on the QQ plot supports normality.*
+
+Since there are several points that stray far from the diagonal line on the QQ plot, the normality assumption is violated.
+
+**Homoskedasticity**: *the residuals must have constant variance / spread across all predicted values.*
+*Checked using the residual by predicted value plot. A fairly constant vertical spread / range of the residuals across all predicted values supports homoskedasticity.*
+
+There is a slight outward fanning pattern in the residual by fitted value plot, suggesting that the homoskedasticity is questionable here.
+
+**Independence**: *the residuals must be independent of the predicted values.*
+*Checked using the residual by predicted value plot. No apparent pattern in the relationship between the residuals and predicted values supports the independence assumption.*
+
+There is no clear pattern in the residual by fitted value plot, indicating that the independent errors assumption is met.
+
+**Linearity**: *there must be a linear relationship between each predictor and Y, our response variable.*
+*Checked using the residual by predicted value plot or a scatter plot between X and Y. Having no systematic or identifiable pattern in the residual by predicted value plot supports the linearity assumption. A linear or straight-line pattern in the scatter plot between each predictor and Y also supports the linearity assumption.*
+
+There is a positive and linear relationship between peak wave heights in feet and the wind speeds in knots (r = 0.41)
+
+However, from scatter plot, here is no clear relationship between the peak wave heights in feet and the temperature in Fahrenheit (r = 0.21).
+
+Neither predictor exhibits non-linear relationships.
+
+**No multicollinearity**: *the predictor variables should not be highly correlated with one another. This assumption is only applicable for multiple linear regression.*
+
+Since all VIF values are less than 5, the assumption of no multicollinearity being present is met.
+
+**Overall, not all assumptions are met, but we proceed for the sake of the problem.**
+
+
+
+#### Interpreting model estimates
+
+```{r}
+# Printing model output
+mlrModel %>% 
+  broom::tidy() %>% 
+  make_flex(caption = "Two predictor MLR model estimates",
+            ndigits = 3)
+```
+
+
+```{r}
+mlrModel %>% 
+  broom::glance() %>% 
+  make_flex(caption = "Two predictor MLR model output")
+```
+
+
+**Using the obtained output, provide a statement of the estimated regression equation.**
+
+
+
+The estimated MLR model is
+
+ŷ = 0.136 + 0.204 * x1 - 0.001 * x2,
+
+where:
+
+ŷ represents the estimated peak wave height in feet
+
+x1 represents the wind speed in knots
+
+x2 represents the temperature in Fahrenheit
+
+
+**Interpret the estimated slopes in context.**
+
+Since βHat1 = 0.204, for every 1 knot increase in wind speed, we expect the peak wave height in feet to increase by 0.204 feet, holding the temperature constant.
+
+Since βHat2 = -0.001, for every 1 degree Fahrenheit increase in temperature, we expect the peak wave height in feet to decrease by 0.001 feet, holding the wind speed constant.
+
+**Interpret the estimated intercept in context. Is this sensible in this context?**
+
+Since βHat0 = 0.136, the expected the peak wave height in feet on a day that is 0 degrees Fahrenheit with no wind is 0.136 feet.
+
+**Practical issue**: This is not sensible since 0 degrees Fahrenheit would almost certainly mean the Great Lake is frozen over.
+
+**Extrapolation issue**: Since a temperature of 0F is the outside the scope of this data set, that would be extrapolation.
+
+
+**For a 70 degree F day with no wind (0 knots), what is the estimated peak wave height?**
+
+ŷ = 0.136 + 0.204 * x1 - 0.001 * x2
+
+ŷ = 0.136 + 0.204 * 0 - 0.001 * 70
+
+ŷ = 0.066 feet
+
+
+### Functions of Predictors
+
+```{r}
+# Creating scatter plot of wave height by wind speed with a linear fit
+greatLakes %>% 
+  ggplot(aes(x = wind_kts, 
+             y = waves_ft)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) +
+    labs(title = "Linear fit: wave height by wind speed",
+       y = "Peak wave height (feet)",
+       x = "Wind speed (knots)",
+       caption = "Data source: Great Lakes Observing System")
+
+```
+
+
+```{r}
+# Creating scatter plot of wave height by wind speed with quadratic fit
+greatLakes %>% 
+  ggplot(aes(x = wind_kts, 
+             y = waves_ft)) + 
+  geom_point() + 
+stat_smooth(method = "lm", formula = y ~ poly(x, 2), se = FALSE) +
+    labs(title = "Quadratic fit: wave height by wind speed",
+       y = "Peak wave height (feet)",
+       x = "Wind speed (knots)",
+       caption = "Data source: Great Lakes Observing System")
+```
+
+```{r}
+# Fitting a quadratic regression model
+mlrModel2 <- lm(waves_ft ~ wind_kts + I(wind_kts^2),
+                data = greatLakes)
+
+# Printing quadratic model output
+mlrModel2 %>% 
+  broom::tidy() %>% 
+  make_flex(caption = "Quadratic MLR model estimates",
+            ndigits = 3)
+```
+
+
+
+```{r}
+mlrModel2 %>% 
+  broom::glance() %>% 
+  make_flex(caption = "Quadratic MLR model output")
+```
+
+
+**Based on the quadratic model, what is the estimated peak wave height for a day no wind (0 knots)?**
+
+Intercept value (0.635).
+
+yHat = βHat0 (since xHat = 0 knots) = 0.635.
+
+
+Let's revisit the SLR model using just wind speed as a predictor.
+
+### Assessing Model Fit
+
+```{r}
+# Fitting single predictor model
+mlrModel1 <- lm(waves_ft ~ wind_kts,
+                data = greatLakes)
+
+# Model output for single predictor model
+mlrModel1 %>% 
+  broom::glance() %>% 
+  make_flex(caption = "Output for SLR model (wind speed).")
+```
+
+
+
+```{r}
+# Fitting two-predictor multiple linear regression model
+mlrModel <- lm(waves_ft ~ wind_kts + water_f,
+                data = greatLakes)
+
+# Model output for two-predictor model
+mlrModel %>% 
+  broom::glance() %>% 
+  make_flex(caption = "Two-predictor MLR model output")
+```
+
+
+
+```{r}
+# Fitting a quadratic regression model
+mlrModel2 <- lm(waves_ft ~ wind_kts + I(wind_kts^2),
+                data = greatLakes)
+
+# Model output for quadratic model
+mlrModel2 %>% 
+  broom::glance() %>% 
+  make_flex(caption = "Quadratic MLR model output")
+```
+
+
+
+```{r}
+# Fitting two predictor quadratic model
+mlrModel22 <- lm(waves_ft ~ water_f + I(wind_kts^2),
+                data = greatLakes)
+
+# Model output for two predictor quadratic model
+mlrModel22 %>% 
+  broom::glance() %>% 
+  make_flex(caption = "Two predictor quadratic MLR model estimates")
+```
+
+
+**Based on the AIC and BIC values, which model should we use for making predictions?**
+
+Since the two predictor quadratic model with water temperature and wind speed squared has the lowest AIC and lowest BIC values, this is the preferred model for making predictions.
+
+Based on the adjusted r^2 value though, the third model is best since it has the highest largest adjusted r^2 value.
+
+
+

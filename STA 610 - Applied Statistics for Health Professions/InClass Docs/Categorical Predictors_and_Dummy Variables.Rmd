@@ -1,0 +1,394 @@
+---
+title: "Categorical Predictors & Dummy Variables"
+author: "Arjun Mannem"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r}
+# Load necessary packages
+library(tidyverse)
+library(ggthemes)
+library(flextable)
+library(corrr)
+library(ggfortify)
+library(broom)
+library(car)
+```
+
+```{r}
+# Set ggplot theme for visualizations
+theme_set(ggthemes::theme_few())
+
+# Set default ggplot2 colors
+my_palette <- ggthemes::colorblind_pal()(8)[c(4, 6:8, 2:3, 5, 1)]
+
+# Set options for flextables
+set_flextable_defaults(na_str = "NA")
+
+# Load function for printing tables nicely
+source("https://raw.githubusercontent.com/dilernia/STA323/main/Functions/make_flex.R")
+
+# Load function for visualizing VIF & GVIF values
+source("https://raw.githubusercontent.com/dilernia/STA323/main/Functions/vif_plot.R")
+```
+
+
+
+```{r}
+# Loading penguins data
+penguins <- readr::read_csv("https://raw.githubusercontent.com/dilernia/STA323/main/Data/penguins.csv")
+
+# Dropping missing values
+penguinsComplete <- penguins %>% 
+  dplyr::filter(!is.na(sex)) %>% 
+    dplyr::mutate(sex = fct_relevel(sex, "male", "female"))
+
+# Printing sample of rows from data set
+penguinsComplete %>% 
+  dplyr::select(species, sex, body_mass_g, flipper_length_mm) %>% 
+  dplyr::sample_n(size = 5) %>% 
+  make_flex(caption = "Five randomly selected rows and four variables from the Palmer Penguins data.")
+```
+
+
+
+```{r}
+# Creating a scatter plot of body mass by flipper length
+penguinsComplete %>% 
+  ggplot(aes(x = flipper_length_mm, y = body_mass_g)) + 
+  geom_point(pch = 21, fill = "black",
+             color = "white") + 
+  geom_smooth(aes(x = flipper_length_mm, y = body_mass_g), method = "lm", se = FALSE) +
+  labs(y = "Body mass (g)", 
+       x = "Flipper length (mm)", 
+       title = "Palmer penguins data: body mass by flipper length")
+```
+
+
+```{r}
+# Fitting SLR model
+slrModel <- lm(body_mass_g ~ flipper_length_mm, data = penguinsComplete)
+
+# Printing SLR model output
+slrModel %>% 
+  broom::tidy() %>% 
+  make_flex(ndigits = 1,
+            caption = "SLR model output.")
+```
+
+
+**How do we interpret the estimated slope?**
+
+For every 1mm increase in a penguin's flipper length, we expect its body mass to increase by 50.2 grams.
+
+
+**How do we interpret the estimated intercept?**
+
+Since 0 is outside the scope of the data set
+
+
+#### What if we wanted to incorporate categorical variables in our model?
+
+```{r}
+# Creating scatter plot of body mass by flipper length coloring points by sex
+penguinsComplete %>% 
+  ggplot(aes(x = flipper_length_mm, y = body_mass_g)) + 
+  geom_point(aes(x = flipper_length_mm, y = body_mass_g, fill = sex), pch = 21, color = "white") + 
+  geom_smooth(aes(x = flipper_length_mm, y = body_mass_g), 
+              method = "lm", se = FALSE, color = "black") +
+  labs(y = "Body mass (g)", x = "Flipper length (mm)", title = "Palmer penguins data: body mass by flipper length") +
+    scale_fill_manual(values = my_palette) +
+  theme(legend.position = "bottom")
+```
+
+
+```{r}
+# Creating side-by-side boxplots for body mass by sex
+penguinsComplete %>% 
+  ggplot(aes(x = sex, y = body_mass_g, fill = sex)) + 
+  geom_boxplot() + 
+  labs(y = "Body mass (g)", x = "sex", title = "Palmer penguins data: body mass by sex") +
+  scale_fill_manual(values = my_palette) + 
+  theme(legend.position = "none")
+```
+
+
+
+**Does a penguin’s body mass (g) appear to vary based on its sex? Do male or female penguins have larger average body masses?**
+
+
+
+
+### Categorical Predictors
+
+Example 1: Predicting how many points a basketball team will score using playing location (home, away, or a neutral court)
+
+Example 2: Estimating the effect of different treatments on blood pressure (Drug A, Drug B, and a placebo)
+
+
+**How many dummy variables would be needed to incorporate the categorical predictors in Examples 1 and 2?**
+
+Example 1: 2 dummy variables
+
+Example 2: 2 dummy variables
+
+### Palmer Penguins Data
+
+```{r}
+# Set seed value for reproducible random number generation
+set.seed(1994)
+
+# Creating explicit dummy variable for sex of the penguin
+penguinsDummy <- penguinsComplete %>% 
+  dplyr::mutate(sexfemale = ifelse(sex == "female", 1, ifelse(sex == "male", 0, NA)))
+
+# Displaying data with dummy variable
+penguinsDummy %>% 
+  dplyr::select(species, sex, sexfemale, body_mass_g, flipper_length_mm) %>% 
+  sample_n(size = 5) %>%
+  make_flex(caption = "Five randomly selected rows from the Palmer Penguins data displaying a dummy variable.")
+```
+
+
+#### Modeling Penguin Body Mass: Theoretical Model
+
+```{r}
+# Group means for plotting line of best fit
+bodyMassMeans <- penguinsDummy %>% 
+  dplyr::group_by(sex) %>% 
+  dplyr::summarize(Mean = mean(body_mass_g), 
+                   sexfemale = mean(sexfemale))
+
+# Visualizing group means
+penguinsDummy %>% 
+  ggplot(aes(x = sexfemale, y = body_mass_g, 
+             fill = sex)) + 
+  geom_point(pch = 21, color = "white") +
+  geom_hline(data = bodyMassMeans, 
+              aes(yintercept = Mean, color = sex)) +
+    labs(y = "Body mass (g)", x = "Female Indicator", title = "Palmer penguins data: body mass by sex") +
+  scale_fill_manual(values = my_palette) + 
+    scale_color_manual(values = my_palette) + 
+  scale_x_continuous(breaks = c(0, 1)) +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+# Fitting SLR model with sex as predictor
+slrModel2 <- lm(body_mass_g ~ sex, 
+                data = penguinsComplete)
+
+# Printing SLR model output
+slrModel2 %>% 
+  broom::tidy() %>% 
+  make_flex(ndigits = 1,
+            caption = "SLR model output.")
+```
+
+**Which group is the baseline / reference category?**
+
+The male category is the baseline / reference category since it does not have a dummy variable as a predictor in the model.
+
+**How do we interpret the estimated slope?**
+
+Since βHat1 = -683.4, we expect that female penguins have body masses that are 683.4 grams less than that of male penguins, on average.
+
+**How do we interpret the estimated intercept?**
+
+Since βHat0 = 4,545.7, this means that the expected body mass of the male penguins is 4,545.7 grams.
+
+**What is the expected body mass (g) of a female penguin?**
+
+yHat = 4545.7 − 683.4 * 1 = 3862.3 grams
+
+
+#### Modeling Penguin Body Mass
+
+```{r}
+# Creating scatter plot of body mass by flipper length colored by sex
+penguinsComplete %>% 
+  ggplot(aes(x = flipper_length_mm, y = body_mass_g,
+             fill = sex)) + 
+  geom_point(pch = 21, color = "white") + 
+  labs(y = "Body mass (g)", x = "Flipper length (mm)", title = "Palmer Penguins Data: Body Mass by Flipper Length") +
+  scale_fill_manual(values = my_palette) + 
+  theme(legend.position = "bottom")
+
+```
+
+```{r}
+# Fitting MLR model
+mlrModel <- lm(body_mass_g ~ sex + flipper_length_mm,
+               data = penguinsComplete)
+
+# Extracting MLR model coefficients
+betaHats <- coefficients(mlrModel)
+
+# Printing MLR model output
+mlrModel %>% 
+  broom::tidy() %>% 
+  make_flex(ndigits = 1,
+            caption = "MLR model output.")
+```
+
+**How do we interpret the estimated slope for the sex of the penguin?**
+
+Since βHat1 = -347.9, we expect female penguins have body masses that are 347.9 grams less than that of male penguins with same flipper length.
+
+**How do we interpret the estimated intercept?**
+
+Since flipper length = 0 is outside the scope of the data set, interpreting the intercept would be extrapolation, and thus is inappropriate.
+
+**How do we interpret the estimated slope for the flipper lengths of the penguins?**
+
+Since βHat2 = 47.0, for every 1mm increase in a penguin's flipper length, we expect its body mass to increase by 47.0 grams.
+
+
+#### Modeling Penguin Body Mass using Species
+
+**How many dummy variables are used to represent the species variable?**
+
+2 dummy variables since there are 3 species.
+
+**Based on the model above, which species is the baseline / reference category? Why?**
+
+Adelie species is the baseline / reference category,since it does not have a dummy variable.( X1=1 for an chinstrap penguin and 0 otherwise, X2=1 for a gentoo penguin and 0 otherwise.)
+
+
+```{r}
+# Set seed value for reproducible random number generation
+set.seed(1994)
+
+# Creating explicit dummy variables for species
+penguinsDummy2 <- penguinsComplete %>% 
+  dplyr::mutate(speciesChinstrap = ifelse(species == "Chinstrap", 1, 0),
+         speciesGentoo = ifelse(species == "Gentoo", 1, 0))
+
+# Displaying data with dummy variabels for species
+penguinsDummy2 %>% 
+  dplyr::select(species, speciesChinstrap, speciesGentoo, body_mass_g, flipper_length_mm) %>% 
+  dplyr::sample_n(size = 5) %>%
+  make_flex(caption = "Five randomly selected rows from the Palmer Penguins data displaying dummy variables.")
+
+```
+
+
+```{r}
+# Fitting linear model with species as predictor
+speciesModel <- lm(body_mass_g ~ species, 
+                   data = penguinsComplete)
+
+betaHats <- coefficients(speciesModel)
+# Printing MLR model output
+speciesModel %>% 
+  broom::tidy() %>% 
+  make_flex(ndigits = 1,
+            caption = "MLR model output.")
+```
+
+yHat = 3706.2 + 26.9X1 + 1386.3X2
+
+**Interpretation of estimated intercept**: Since βHat0 = 3706.2, the expected bodymass of an Adelie penguin is 3706.2 grams.
+
+**Interpretation of estimated slope for Chinstrap penguins**: Since βHat1 = 26.9, the expected bodymass of an Chinstrap penguin is 
+26.9 grams greater than that of Adelie species. Here, 3706.2 + 26.9 = 3733.1 grams.
+
+**Interpretation of estimated slope for Chinstrap penguins**: Since βHat2 = 1386.3, the expected bodymass of an Chinstrap penguin is 
+1386.3 grams greater than that of Adelie species. Here, 3706.2 + 1386.3 = 5092.5 grams.
+
+
+```{r}
+# Group means for plotting line of best fit
+bodyMassMeans <- penguinsDummy %>% 
+  dplyr::group_by(species) %>% 
+  dplyr::summarize(Mean = mean(body_mass_g))
+
+# Plotting group data
+penguinsDummy %>% 
+  ggplot(aes(x = as.integer(as.factor(species)), y = body_mass_g, 
+             fill = species)) + 
+  geom_point(pch = 21, color = "white") +
+  labs(y = "Body mass (g)", x = "", title = "Palmer Penguins Data: Body Mass by species") +
+   geom_hline(data = bodyMassMeans, 
+              aes(yintercept = Mean, color = species)) +
+  scale_fill_manual(values = my_palette[4:6]) +
+  scale_color_manual(values = my_palette[4:6]) +
+  scale_x_continuous(breaks = 0) +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+# Fitting linear models
+speciesFlipModel <- lm(body_mass_g ~ species + flipper_length_mm, data = penguinsComplete)
+
+betaHats <- coefficients(speciesFlipModel)
+
+# Printing MLR model output
+speciesFlipModel %>% 
+  broom::tidy() %>% 
+  make_flex(ndigits = 1,
+            caption = "MLR model output.")
+```
+
+**How do we interpret the estimated intercept?**
+
+βHat0 = -4013.2
+
+Since a flipper length of 0mm is outside the range of our observed data set, it would be **extrapolation** to interpret this value, and thus this is inappropriate.
+
+**How do we interpret the estimated slopes?**
+
+(1) Since βHat_Chinstrap = -205.4, the expected body mass in grams of Chinstrap penguins is 205.4 grams less than that of the Adelie penguins with the same flipper lengths.
+
+(2) Since βHat_Gentoo = 284.5, the expected body mass in grams of Gentoo penguins is 284.5 grams more than that of the Adelie penguins with the same flipper lengths.
+
+(3) Since βHat_Flipperlength = 40.6, for every 1mm increase in penguin's flipper length, we expect its body mass in grams to increase by 40.6 grams, holding its species constant.
+
+
+**What is the expected body mass (g) of a Chinstrap penguin with a flipper length of 195mm? Is this extrapolation?**
+
+yHat = -4013.2 - 205.4 * (x1) +284.5 * (x2) + 40.6 * (x3)
+
+yHat = -4013.2 - 205.4 * (1) +284.5 * (0) + 40.6 * 195
+
+yHat = 3698.4 grams
+
+No, this is not extrapolation since 195mm is within the range of the observed flipper lengths for the Chinstrap penguins.
+
+```{r}
+# Obtaining predicted value
+predict(speciesFlipModel, 
+        newdata = tibble(species = "Chinstrap",
+                         flipper_length_mm = 195))
+##        1 
+## 3699.648
+
+```
+
+
+**If a Chinstrap penguin with a flipper length of 195mm had a body mass of 3900 grams, what is its corresponding residual? What does this mean?**
+
+residual = y - yHat
+
+residual = 3900 - 3698.4 = 201.6 grams
+
+This penguin weighed about slightly more(200 grams) than our model expected, given its species and flipper lengths.
+
+
+**What is the expected body mass (g) of a Chinstrap penguin with a flipper length of 225mm? Is this extrapolation?**
+
+Since 225mm is outside the range of the observed flipper lengths for the Chinstrap penguins, such a predicted value would be extrapolation, and thus is inappropriate to calculate.
+
+**Does it seem reasonable to constrain the regression lines to be parallel for each group?**
+
+Since parallel lines fit the data reasonably well, it does seem reasonable to constrain the regression lines to be parallel for each group.
+
+
+
+
+
+
+

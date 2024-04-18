@@ -1,0 +1,151 @@
+---
+title: "Inference PPCV Quiz"
+author: "Arjun Mannem"
+date: "`r Sys.Date()`"
+output: html_document
+---
+#### Installing necessary packages
+
+```{r}
+# Load necessary packages
+library(tidyverse)
+library(ggthemes)
+library(flextable)
+library(janitor)
+library(broom)
+
+```
+
+#### We can set default theme settings for plots, and load some functions to simplify table customization and creation using the code below.
+
+```{r}
+# Set ggplot theme for visualizations
+theme_set(ggthemes::theme_few())
+
+# Set options for flextables
+set_flextable_defaults(na_str = "NA")
+
+# Load function for printing tables nicely
+source("https://raw.githubusercontent.com/dilernia/STA323/main/Functions/make_flex.R")
+```
+
+#### Let’s import data from the website GitHub to use for this activity, and print 7 randomly selected rows from the data.
+
+```{r}
+# Importing data from course GitHub page
+possums <- read_csv("https://raw.githubusercontent.com/dilernia/STA323/main/Data/possum.csv")
+
+set.seed(1994)
+
+# Printing sample of 7 rows from data set
+possums %>%  
+  dplyr::sample_n(size = 7) %>% 
+  make_flex(caption = "Randomly selected people who were aboard the Titanic.")
+```
+
+
+
+```{r}
+# Creating contingency table
+
+contingencyTable2 <- possums %>% 
+
+ janitor::tabyl(var1 = region, var2 = sex)
+
+
+
+# Calculating confidence interval for p1 - p2
+
+possum_sex_counts <- contingencyTable2 %>% 
+
+ dplyr::filter(region %in% c("New South Wales / Queensland", "Victoria")) %>% 
+
+ dplyr::select(c("Female", "Male"))
+
+
+
+diff_possum_CI <- prop.test(x = as.matrix(possum_sex_counts),
+
+               n = colSums(possum_sex_counts),
+
+               conf.level = 0.95,
+
+               correct = FALSE)
+# Printing table
+contingencyTable2 %>% 
+  make_flex(caption = "95% confidence interval for the difference in the proportion of possums who are female in the New South Wales / Queensland region compared to the Victoria region", ndigits = 0)
+
+diff_possum_CI %>% 
+  broom::tidy() %>% 
+  make_flex(caption = "Confidence interval for proportion of 3rd-class passengers who survived on the Titanic",
+            ndigits = 3)
+```
+
+```{r}
+
+# Implementing a chi-square test of independence
+chi2Res <- chisq.test(contingencyTable2, tabyl_results = TRUE)
+# Printing table
+chi2Res$expected %>% 
+  make_flex(caption = "Expected counts for survival status by passenger class", ndigits = 1)
+
+
+# Printing model output
+chi2Res %>% 
+  broom::tidy() %>% 
+  make_flex(caption = "Results of the chi-square test of independence",
+            ndigits = 2)
+```
+
+```{r}
+# Creating contingency table
+
+contingencyTable2 <- possums %>% 
+
+ janitor::tabyl(var1 = region, var2 = sex)
+
+
+
+# Calculating confidence interval for p
+
+victoria_counts <- contingencyTable2 %>% 
+
+ dplyr::filter(region == "Victoria") %>% 
+
+ dplyr::select(c("Female", "Male"))
+
+
+
+possum_CI <- prop.test(x = victoria_counts$Female,
+
+               n = sum(victoria_counts),
+
+               conf.level = 0.95,
+
+               correct = FALSE)
+
+possum_CI %>% 
+  broom::tidy() %>% 
+  make_flex(caption = "95% confidence interval for the proportion of possums who are female in the Victoria region",
+            ndigits = 3)
+
+```
+
+
+
+```{r}
+# Creating contingency table
+
+contingencyTable3 <- possums %>% 
+
+ janitor::tabyl(var1 = region, var2 = site)
+
+# Printing table
+contingencyTable3 %>% 
+  make_flex(caption = "95% confidence interval for the difference in the proportion of possums who are female in the New South Wales / Queensland region compared to the Victoria region", ndigits = 0)
+
+diff_possum_CI %>% 
+  broom::tidy() %>% 
+  make_flex(caption = "Confidence interval for proportion of 3rd-class passengers who survived on the Titanic",
+            ndigits = 3)
+```

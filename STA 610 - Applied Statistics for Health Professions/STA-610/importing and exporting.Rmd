@@ -1,0 +1,73 @@
+---
+title: "Importing and Exporting"
+author: "Mallikarjuna Mannem"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Let's load some packages
+```{r}
+library(data.table)
+library(tidyverse)
+library(knitr)
+library(arrow)
+library(bench)
+library(ggbeeswarm)
+library(haven)
+```
+
+#tidyverse is the main package we use in data manipulation and visualization
+#data.table is used to organize data in R and import and export csv
+#arrow work on different files of csv
+#ggbeeswarm creating paths
+#haven function allows data import and export from various files.
+#knitr package to display tables
+
+let's import and export some data in R using read.csv()
+
+```{r}
+#Importing possums data into R
+
+possums <- read.csv("https://raw.githubusercontent.com/dilernia/STA418-518/main/Data/possum.csv")
+
+
+library(readr)
+possums <- read_csv("C:/Users/IT Loaner/Downloads/raw.githubusercontent.com_dilernia_STA418-518_main_Data_possum.csv")
+
+
+possums %>% 
+  dplyr::select(1:6) %>% 
+  slice_head(n = 5) %>% 
+  knitr::kable()
+```
+
+##Using `read_csv()`
+
+```{r}
+possums<- readr::read_csv("https://raw.githubusercontent.com/dilernia/STA418-518/main/Data/possum.csv")
+```
+
+```{r}
+#Importing using R parquet
+library(arrow)
+
+# Import after manually downloading file
+possums <- read_parquet("C:\\Users\\IT Loaner\\Downloads\\possum.parquet")
+```
+
+##Using `fread()` from the `data.table` package
+
+```{r}
+library(data.table)
+
+# Import after manually downloading file
+possums <- fread("https://raw.githubusercontent.com/dilernia/STA418-518/main/Data/possum.csv")
+```
+
+
+
+

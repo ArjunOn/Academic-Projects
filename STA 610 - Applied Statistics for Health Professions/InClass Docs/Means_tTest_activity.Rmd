@@ -1,0 +1,312 @@
+---
+title: "Inference Of Population Means"
+author: "Mallikarjuna"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r LoadPackages}
+# Load necessary packages
+library(tidyverse)
+library(ggthemes)
+library(flextable)
+
+```
+
+```{r}
+# Set ggplot theme for visualizations
+theme_set(ggthemes::theme_few())
+
+# Set options for flextables
+set_flextable_defaults(na_str = "NA")
+
+# Load function for printing tables nicely
+source("https://raw.githubusercontent.com/dilernia/STA323/main/Functions/make_flex.R")
+
+```
+
+```{r}
+# Get a sample
+
+sample(1:100, size=10)
+
+```
+
+### Let's import data from the website GitHub to use for this activity.
+
+```{r LoadPenguinData}
+
+# Load Palmer penguins data
+penguins <- readr::read_csv("https://raw.githubusercontent.com/dilernia/STA323/main/Data/penguins.csv", show_col_types = FALSE)
+```
+
+### *As a researcher interested in penguins, we may be interested in the average flipper length (mm) of penguins from Palmer Archipelago, Antarctica. From our previous experience, we believe that penguins typically have an average flipper length of 200mm, but is this true for these penguins from Antarctica as well? We can explore this using a one-sample t-test.*
+
+**Formally state the hypotheses for our question of interest.**
+
+We are interested in testing whether the average flipper length of all penguins in Palmer Archipelago, Antarctica is equal to 200mm or not.
+
+Formally, the hypotheses for our corresponding one-sample $t$-test are below.
+
+H0: $\mu = 200$ vs. Ha:$\mu \ne 200$
+
+where $\mu$ is average flipper length of all penguins in Palmer Archipelago, Antarctica.
+
+**What is the null value, 0, for this test?**
+
+$\mu_0 = 200$
+
+```{r quant1Stats}
+# Calculating descriptive statistics
+quant1Stats <- penguins %>% 
+  dplyr::summarize(
+  Minimum = min(flipper_length_mm, na.rm = TRUE),
+  Q1 = quantile(flipper_length_mm, na.rm = TRUE, probs = 0.25),
+  M = median(flipper_length_mm, na.rm = TRUE),
+  Q3 = quantile(flipper_length_mm, na.rm = TRUE, probs = 0.75),
+  Maximum = max(flipper_length_mm, na.rm = TRUE),
+  Mean = mean(flipper_length_mm, na.rm = TRUE),
+  R = Maximum - Minimum,
+  s = sd(flipper_length_mm, na.rm = TRUE),
+  n = n()
+)
+
+# Printing table of statistics
+quant1Stats %>% 
+  make_flex(caption = "Quantitative summary statistics for penguin flipper lengths (mm).")
+
+```
+
+```{r}
+# Creating a histogram
+penguins %>% 
+  ggplot(aes(x = flipper_length_mm)) + 
+  geom_histogram(color = "white") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.10))) +
+  labs(title = "Penguin flipper lengths",
+       x = "Flipper length (mm)",
+       y = "Frequency",
+       caption = "Data source: palmerpenguins R package")
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+```
+
+## Quantile-Quantile plot
+
+```{r}
+# Creating a Quantile-Quantile (QQ) plot
+penguins %>% 
+  ggplot(aes(sample = flipper_length_mm)) + 
+  stat_qq_line() +
+  stat_qq() +
+  labs(title = "QQ-plot for penguin flipper lengths",
+       x = "Theoretical normal quantiles",
+       y = "Empirical quantiles",
+       caption = "Data source: palmerpenguins R package")
+
+```
+
+##Checking the model assumptions
+
+**State each assumption for the one-sample t-test, and indicate whether or not each assumption is met, citing specific evidence from the output obtained.**
+
+1.  **Independent Observations**: These measurements are for separate penguins and we assume they were randomly selected for the sake of the problem.
+
+2.  **Normality Assumption**: Since n = 344, which is larger than 100, the normality assumption is met as per Central Limit theorem.
+
+## Next, we implement the one-sample t-test.
+
+```{r ttestRes}
+# Implementing a one-sample t-test using R
+ttestRes <- t.test(penguins$flipper_length_mm,
+                   mu = 200, conf.level = 0.95)
+
+# Printing model output
+ttestRes %>% 
+  broom::tidy() %>% 
+  make_flex()
+```
+
+**State our p-value, decision, and conclusion in the context of the problem testing at the 5% significance level, citing specific evidence from the obtained output.**
+
+***p-value***: 0.23
+
+***decision***: Since the p-value of 0.23 is grater than 0.05, we fail to reject H0.
+
+***conclusion***: We have insufficient evidence that the mean flipper lengths of penguins in Palmer Archipelago, Antarctica differs from 200mm.
+
+**Provide and interpret a 95% confidence interval for the average flipper length of penguins from Palmer Archipelago, Antarctica.**
+
+CI limits for $\mu$: (199.42,202.41)
+
+We are 95% confident that the mean flipper length of penguins in Palmer Archipelago, Antarctica is between 199.42mm and 202.41mm.
+
+**Do the results of the t-test and 95% confidence interval align? Why or why not?**
+
+## Two-sample t-test
+
+A formal statement of our hypotheses for testing if penguins from the Dream island weigh the same as penguins from the Biscoe island, on average, is below:
+
+H0: $\mu_1 = \mu_2$ vs Ha: $\mu_1 \ne \mu_2$
+
+where $\mu_1$ is the average body mass of penguins from Dream island and $\mu_2$ is the average body mass of penguins from Biscoe island.
+
+**What would the statement of hypotheses be for testing if Biscoe penguins have a greater average body mass in grams than penguins from the Dream island?**
+
+In that case, our hypotheses would be $\mu_1 < \mu_2$.
+
+```{r quant2Stats}
+# Calculating descriptive statistics
+quant2Stats <- penguins %>% 
+  dplyr::filter(island %in% c("Biscoe", "Dream")) %>% 
+  group_by(island) %>% 
+  summarize(
+  Minimum = min(body_mass_g, na.rm = TRUE),
+  Q1 = quantile(body_mass_g, na.rm = TRUE, probs = 0.25),
+  M = median(body_mass_g, na.rm = TRUE),
+  Q3 = quantile(body_mass_g, na.rm = TRUE, probs = 0.75),
+  Maximum = max(body_mass_g, na.rm = TRUE),
+  Mean = mean(body_mass_g, na.rm = TRUE),
+  R = Maximum - Minimum,
+  s = sd(body_mass_g, na.rm = TRUE),
+  n = n()
+)
+
+# Printing table of statistics
+quant2Stats %>% 
+  make_flex(caption = "Summary statistics for penguin body masses (g) by species.")
+```
+
+```{r geom_boxplot}
+# Creating side-by-side box plots
+penguins %>% 
+  dplyr::filter(island %in% c("Biscoe", "Dream")) %>% 
+  ggplot(aes(x = island, y = body_mass_g, fill = island)) + 
+  geom_boxplot() + 
+  scale_fill_manual(values = c("#1F77B4", "#2CA02C")) +
+        labs(title = "Penguin body masses by island",
+       x = "Island",
+       y = "Body mass (g)",
+       caption = "Data source: palmerpenguins R package") +
+  theme(legend.position = "none")
+## Warning: Removed 1 rows containing non-finite values (`stat_boxplot()`).
+
+```
+
+**Describe what the box plots show us in terms of the center and symmetry of the body masses for both the Biscoe and Dream island penguins.**
+
+```{r histogramBiscoe}
+# Creating a histogram
+penguins %>% 
+    dplyr::filter(island %in% c("Biscoe")) %>% 
+  ggplot(aes(x = body_mass_g)) + 
+  geom_histogram(color = "white", fill = "#1F77B4") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.10))) +
+  labs(title = "Biscoe island penguin body masses",
+       x = "Body mass (g)",
+       y = "Frequency",
+       caption = "Data source: palmerpenguins R package")
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+```
+
+```{r histogramDream}
+# Creating a histogram
+penguins %>% 
+    dplyr::filter(island %in% c("Dream")) %>% 
+  ggplot(aes(x = body_mass_g)) + 
+  geom_histogram(color = "white", fill = "#2CA02C") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.10))) +
+  labs(title = "Dream island penguin body masses",
+       x = "Body mass (g)",
+       y = "Frequency",
+       caption = "Data source: palmerpenguins R package")
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+
+```
+
+**Describe what the histograms show us in terms of the body masses for the penguins.**
+
+Fairly Symmetric and unimodal.
+
+```{r QQplotBodymassesBiscoe}
+# Creating a Quantile-Quantile (QQ) plot
+penguins %>% 
+    dplyr::filter(island %in% c("Biscoe")) %>% 
+  ggplot(aes(sample = body_mass_g)) + 
+  stat_qq_line() +
+  stat_qq(color = "white", fill = "#1F77B4", pch = 21) +
+  labs(title = "QQ-plot for Biscoe island penguin body masses",
+       x = "Theoretical normal quantiles",
+       y = "Empirical quantiles",
+       caption = "Data source: palmerpenguins R package")
+```
+
+```{r QQplotBodymassesDream}
+# Creating a Quantile-Quantile (QQ) plot
+penguins %>% 
+    dplyr::filter(island %in% c("Dream")) %>% 
+  ggplot(aes(sample = body_mass_g)) + 
+  stat_qq_line() +
+  stat_qq(color = "white", fill = "#2CA02C", pch = 21) +
+  labs(title = "QQ-plot for Dream island penguin body masses",
+       x = "Theoretical normal quantiles",
+       y = "Empirical quantiles",
+       caption = "Data source: palmerpenguins R package")
+```
+
+### Provide our decision for the normality assumption for this data set, citing specific evidence from output obtained.
+
+## Two-sample t-test
+
+**Let's conduct the unpooled independent samples t-test:**
+
+```{r unpooledIndependentSampleTest}
+# Creating vectors of values
+dreamMasses <- dplyr::filter(penguins, island == "Dream") %>% 
+  dplyr::pull(body_mass_g)
+
+biscoeMasses <- dplyr::filter(penguins, island == "Biscoe") %>% 
+  dplyr::pull(body_mass_g)
+
+# Implementing the two-sample t-test
+ttestRes2 <- t.test(x = dreamMasses,
+                    y = biscoeMasses,
+                    mu = 0,
+                    conf.level = 0.95)
+
+# Printing model output
+ttestRes2 %>% 
+  broom::tidy() %>% 
+  make_flex(ndigits = 1)
+```
+
+### Implementing the test
+
+### Provide our test statistic, p-value, and decision at the 5% significance level citing evidence from the output.
+
+**test statistic:** -14.1
+
+**p-value:** \<2e-16
+
+**decision:** Since the p-value is \<0.05, we reject the H~0~.
+
+**Provide our interpretation of the result of the two-sample t-test based on our decision.**
+
+Since the p-value is \<0.05, we have sufficient evidence that the average body mass in grams for penguins from the Dream island is less that of penguins from Biscoe island at the 5% significance level.
+
+*Any time we have a two sample t-test that is statistically significant (p-value < 0.05), we should indicate which group was higher or lower, on average in our interpretation.*
+
+**Provide and interpret the confidence interval for the difference in the means between the two groups.**
+
+**confidence interval:** (-1,143.3, -862.9) -> (862.9, 1143.3)
+
+We are 95% confident that the mean body mass in grams for penguins from the Dream island is between 862.9 and 1143.3 grams less than that of penguins from the Biscoe island. 
+
+*We never include negative numbers / bounds in confidence interval interpretations.*
+
+**Which is more useful for describing the difference, if any, between Dream island and Biscoe island penguins in terms of their average body masses - the two-sample t-test or the confidence interval? Why?**
+
+The confidence interval was more useful since it tells us whether or not there is a statistically significant difference between the two groups, and it quantifies the magnitude of the difference between the two groups.

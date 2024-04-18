@@ -1,0 +1,147 @@
+---
+title: "MLR_Homework"
+author: "Arjun Mannem"
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+```{r}
+# Load necessary packages
+
+library(tidyverse)
+
+library(ggthemes)
+
+library(flextable)
+
+library(corrr)
+
+library(ggfortify)
+
+library(broom)
+
+library(car)
+
+library(palmerpenguins)
+
+
+
+# Set ggplot theme for visualizations
+
+theme_set(ggthemes::theme_few())
+
+
+
+# Set options for flextables
+
+set_flextable_defaults(na_str = "NA")
+
+
+
+# Load function for printing tables nicely
+
+source("https://raw.githubusercontent.com/dilernia/STA323/main/Functions/make_flex.R")
+
+
+
+# Load function for visualizing VIF & GVIF values
+
+source("https://raw.githubusercontent.com/dilernia/STA323/main/Functions/vif_plot.R")
+
+
+
+# Importing Palmer penguins data
+
+library(palmerpenguins)
+
+data(penguins, package = "palmerpenguins")
+```
+
+
+
+
+
+```{r}
+# Set ggplot theme for visualizations
+theme_set(ggthemes::theme_few())
+
+# Set default ggplot2 colors
+my_palette <- ggthemes::colorblind_pal()(8)[c(4, 6:8, 2:3, 5, 1)]
+  
+assign("scale_colour_discrete", function(..., values = my_palette) scale_colour_manual(..., values = values), globalenv())
+
+assign("scale_fill_discrete", function(..., values = my_palette) scale_fill_manual(..., values = values), globalenv())
+
+# Set options for flextables
+set_flextable_defaults(na_str = "NA")
+
+# Load function for printing tables nicely
+source("https://raw.githubusercontent.com/dilernia/STA323/main/Functions/make_flex.R")
+
+# Load function for visualizing VIF & GVIF values
+source("https://raw.githubusercontent.com/dilernia/STA323/main/Functions/vif_plot.R")
+```
+
+
+```{r}
+# Printing random 5 rows of data
+penguins %>% 
+  drop_na() %>% 
+  slice_sample(n = 5) %>%
+  make_flex(caption = "Randomly selected rows from the Penguins data.")
+```
+
+
+```{r}
+# Calculating correlations
+corTable <- penguins %>% corrr::correlate(diagonal = 1)
+
+# Printing table of correlations
+corTable %>% 
+  make_flex(caption = "Table of pairwise correlations.")
+```
+
+```{r}
+
+# Fitting three-predictor multiple linear regression model
+mlrModel <- lm(flipper_length_mm ~ bill_length_mm + bill_depth_mm + body_mass_g,
+                data = penguins)
+
+# Creating diagnostic plots
+
+# Residual by fitted value plot
+autoplot(mlrModel, which = 1, label.repel = TRUE)@plots[[1]]
+
+# Quantile-quantile (QQ) plot
+autoplot(mlrModel, which = 2, label.repel = TRUE)@plots[[1]]
+
+# Cook's Distance plot
+autoplot(mlrModel, which = 4, label.repel = TRUE)@plots[[1]]
+
+# Standardized residuals by leverage
+autoplot(mlrModel, which = 5, label.repel = TRUE)@plots[[1]]
+
+# Variance inflation values
+vif_plot(mlrModel)
+
+```
+
+```{r}
+# Printing model output
+mlrModel %>% 
+  broom::tidy() %>% 
+  make_flex(caption = "Three predictor MLR model estimates",
+            ndigits = 3)
+```
+
+```{r}
+mlrModel %>% 
+  broom::glance() %>% 
+  make_flex(caption = "Three predictor MLR model output",ndigits=3)
+```
+
+
+
+
+
+

@@ -1,0 +1,507 @@
+---
+title: "Week2_classActivity"
+author: "Mallikarjuna Rao Mannem"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Installed packages
+
+```{r LoadingNecessaryPackages, echo=TRUE}
+# Load necessary packages
+library(tidyverse)
+library(ggthemes)
+library(flextable)
+library(corrr)
+```
+
+
+
+```{r}
+# Set ggplot theme for visualizations
+theme_set(ggthemes::theme_few())
+
+# Set options for flextables
+set_flextable_defaults(na_str = "NA")
+
+# Load function for printing tables nicely
+source("https://raw.githubusercontent.com/dilernia/STA323/main/Functions/make_flex.R")
+```
+
+
+# Importing Penguins data
+
+```{r penguinsDataset}
+# Load Palmer penguins data
+penguins <- readr::read_csv("https://raw.githubusercontent.com/dilernia/STA323/main/Data/penguins.csv")
+```
+
+
+### The five-number summary is a commonly used set of statistics, consisting of the xmin, Q1, the median, Q3, and xmax.
+
+### Let’s look at some statistics for the flipper lengths in mm of the Palmer penguins.
+
+```{r flipperLengthsOfPalmerPenguins}
+# Calculating descriptive statistics
+quant1Stats <- penguins %>% 
+  dplyr::summarize(
+  Minimum = min(flipper_length_mm, na.rm = TRUE),
+  Q1 = quantile(flipper_length_mm, na.rm = TRUE, probs = 0.25),
+  M = median(flipper_length_mm, na.rm = TRUE),
+  Q3 = quantile(flipper_length_mm, na.rm = TRUE, probs = 0.75),
+  Maximum = max(flipper_length_mm, na.rm = TRUE),
+  Mean = mean(flipper_length_mm, na.rm = TRUE),
+  R = Maximum - Minimum,
+  s = sd(flipper_length_mm, na.rm = TRUE)
+)
+
+# Printing table of statistics
+quant1Stats %>% 
+  make_flex(caption = "Quantitative summary statistics for penguin flipper lengths (mm).")
+
+```
+
+
+**What are the largest and smallest flippers lengths for penguins in this data set?**
+
+The largest was 231mm and the smallest was 172mm.
+
+**Provide and interpret the value of the sample median flipper length for the penguins.**
+
+M = 197mm, so 50% of penguins in the data set had a flipper length 197mm or longer.
+
+**Provide the value of the sample variance of the flipper length for the penguins.**
+
+Since s = 14.06, the sample variance is s^2^= 197.6836mm^2
+
+**Which statistic is more sensitive to outliers: the range or the interquartile-range (IQR)?**
+
+The range is more sensitive to outliers - the IQR is more robust to outliers than the range.
+
+
+### Frequencies also known as counts are useful descriptive statistics for categorical variables. The categorical variables in this data set we can calculate frequency tables for are: species, island, and sex.
+
+```{r PrintingFrequencyTableSpecies}
+# Printing frequency tables
+penguins %>% 
+  dplyr::count(species) %>% 
+  make_flex(caption = "Number of penguins by species.")
+
+```
+
+```{r PrintingFrequencyTableIsland}
+# Printing frequency tables
+penguins %>% 
+  dplyr::count(island) %>% 
+  make_flex(caption = "Number of penguins by island.")
+
+```
+
+
+**Which penguin species had the most observations in this data set?**
+
+Adelie with n=152.
+
+**Which island had the least penguins measured on it?**
+
+Torgersen with n=52.
+
+
+### Recreate the histogram and a box plot for the penguin flipper lengths
+
+```{r penguinHistogram}
+# Creating a histogram
+penguins %>% 
+  ggplot(aes(x = flipper_length_mm)) + 
+  geom_histogram(color = "white") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.10))) +
+  labs(title = "Distribution of penguin flipper lengths",
+       x = "Flipper length (mm)",
+       y = "Frequency",
+       caption = "Data source: palmerpenguins R package")
+
+```
+
+
+### Box Plot 
+
+```{r BoxPlot}
+# Creating a box plot
+penguins %>% 
+  ggplot(aes(x = flipper_length_mm)) + 
+  geom_boxplot() +
+  scale_y_discrete(breaks = NULL) +
+    labs(title = "Distribution of penguin flipper lengths",
+       x = "Flipper length (mm)",
+       caption = "Data source: palmerpenguins R package")
+
+```
+
+**What can we say about the penguin flipper lengths based on the histogram?**
+
+	The histogram shows that the distribution of flipper lengths is bimodal and fairly symmetric.
+	
+**What can we say about the penguin flipper lengths based on the box plot? Are there any outliers present?**
+
+	Box plot cannot say about the modal type. No outliers.
+
+### Modifying the code for the previous histogram, recreate the histogram below for the body mass variable.
+
+```{r penguinBodymassHistogram}
+# Creating a histogram
+penguins %>% 
+  ggplot(aes(x = body_mass_g)) + 
+  geom_histogram(color = "white") +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.10))) +
+  labs(title = "Distribution of penguin bodymasses",
+       x = "Body Masses (g)",
+       y = "Frequency",
+       caption = "Data source: palmerpenguins R package")
+
+```
+
+
+### Recreate the bar chart displaying the number of penguins of each species below.
+
+
+```{r barChartSpecies}
+# Creating a bar chart
+
+penguins %>% dplyr::count(species, .drop = FALSE) %>% 
+  mutate(species = fct_reorder(species, n)) %>% 
+  ggplot(aes(x = species, y = n,
+             fill = species)) + 
+  geom_col(color = "black") +
+  scale_fill_manual(values = c("#c05ccb", "#067075", "#ff7600")) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.10))) +
+    labs(title = "Distribution of penguin species",
+       x = "Species",
+       y = "Frequency",
+       caption = "Data source: palmerpenguins R package") +
+  theme(legend.position = "none")
+```
+
+**What can we say about the penguin species based on the bar chart?**
+
+  Linear and Unimodal.
+
+**Modifying the code for the previous bar chart, recreate the bar chart below for the island variable. Hint: the hex codes for the color-blind friendly colors in the bar chart are c("#1F77B4", "#2CA02C", "#D62728").**
+
+```{r barChartIsland}
+# Creating a bar chart
+
+penguins %>% dplyr::count(island, .drop = FALSE) %>% 
+  mutate(island = fct_reorder(island, n)) %>% 
+  ggplot(aes(x = island, y = n,
+             fill = island)) + 
+  geom_col(color = "black") +
+  scale_fill_manual(values = c("#1F77B4", "#2CA02C", "#D62728")) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.10))) +
+    labs(title = "Distribution of penguin island",
+       x = "Island",
+       y = "Frequency",
+       caption = "Data source: palmerpenguins R package") +
+  theme(legend.position = "none")
+```
+
+
+## Bivariate descriptive statistics
+
+### Let’s look at the correlations for the penguins data:
+
+```{r Correlations}
+# Calculating correlations
+corTable <- penguins %>% 
+  corrr::correlate(diagonal = 1)
+
+# Printing table of correlations
+corTable %>%
+  make_flex(caption = "Table of pairwise correlations.")
+```
+
+**Which variables have the strongest correlation?**
+
+flipper_length_mm and body_mass_g have the strongest correlation with r = 0.87.
+
+**Which variables have the weakest correlation?**
+
+body_mass_g and year has weakest correlation with r = 0.04.
+
+### Recreate the table of statistics for the flipper lengths of the penguins stratified by species below.
+
+```{r descriptiveStatisticsFlipperLength}
+# Calculating descriptive statistics
+quant2Stats <- penguins %>% 
+  group_by(species) %>% 
+  summarize(
+  Minimum = min(flipper_length_mm, na.rm = TRUE),
+  Q1 = quantile(flipper_length_mm, na.rm = TRUE, probs = 0.25),
+  M = median(flipper_length_mm, na.rm = TRUE),
+  Q3 = quantile(flipper_length_mm, na.rm = TRUE, probs = 0.75),
+  Maximum = max(flipper_length_mm, na.rm = TRUE),
+  Mean = mean(flipper_length_mm, na.rm = TRUE),
+  R = Maximum - Minimum,
+  s = sd(flipper_length_mm, na.rm = TRUE),
+  n = n()
+)
+
+# Printing table of statistics
+quant2Stats %>% 
+  make_flex(caption = "Summary statistics for penguin flipper lengths by species.")
+
+```
+
+**Which penguin species typically had the largest flipper lengths?**
+
+Gentoo species has the largest flipper lengths.
+
+**Which penguin species had the most variability in their flipper lengths?**
+
+Chinstrap species has the most variability in the flipper lengths. 
+
+### Modifying the previously provided code, recreate the table of statistics for the body masses of the penguins stratified by sex below.
+
+
+```{r descriptiveStatisticsBodyMass}
+# Calculating descriptive statistics
+quant2Stats <- penguins %>% 
+  group_by(sex) %>% 
+  summarize(
+  Minimum = min(body_mass_g, na.rm = TRUE),
+  Q1 = quantile(body_mass_g, na.rm = TRUE, probs = 0.25),
+  M = median(body_mass_g, na.rm = TRUE),
+  Q3 = quantile(body_mass_g, na.rm = TRUE, probs = 0.75),
+  Maximum = max(body_mass_g, na.rm = TRUE),
+  Mean = mean(body_mass_g, na.rm = TRUE),
+  R = Maximum - Minimum,
+  s = sd(body_mass_g, na.rm = TRUE),
+  n = n()
+)
+
+# Printing table of statistics
+quant2Stats %>% 
+  make_flex(caption = "Summary statistics for penguin body masses by sex.")
+
+```
+
+
+### Frequency Table
+
+```{r FrequencyTable}
+# Creating frequency table
+speciesIslandCounts <- penguins %>% 
+  dplyr::count(species, island)
+
+# Printing frequency table
+speciesIslandCounts %>% 
+  make_flex(caption = "Number of penguins by island and species.")
+```
+
+**Was any penguin species found on more than one island?**
+
+Yes, Adelie species is in three different islands.
+
+**How many penguins were found on Dream island?**
+
+124 penguins found in Dream island.
+
+
+### Bivariate visualizations
+
+```{r scatterPlotPoints}
+
+# Creating a scatter plot
+penguins %>% 
+  ggplot(aes(x = body_mass_g, y = flipper_length_mm)) + 
+  geom_point(pch = 21, color = "white", fill = "black") +
+    labs(title = "Penguin flipper lengths by body mass",
+       x = "Body mass (g)",
+       y = "Flipper length (mm)",
+       caption = "Data source: palmerpenguins R package")
+```
+
+
+
+
+### We can also add a straight line of best fit to scatter plots as well.
+
+```{r AddLineToScatterPlot}
+# Creating a scatter plot with a line of best fit
+penguins %>% 
+  ggplot(aes(x = body_mass_g, y = flipper_length_mm)) + 
+  geom_point(pch = 21, color = "white", fill = "black") +
+  geom_smooth(method = 'lm', se = FALSE) +
+      labs(title = "Penguin flipper lengths by body mass",
+       x = "Body mass (g)",
+       y = "Flipper length (mm)",
+       caption = "Data source: palmerpenguins R package")
+
+```
+**What do we observe based on the scatter plot above?**
+
+Plot shows the data is linear.
+
+
+### For one quantitative and one categorical variable, side-by-side box plots are a useful visualization. We can use a side-by-side boxplot to explore the penguin flipper lengths by species as below.
+
+```{r sideBYsideBoxPlots}
+# Creating side-by-side box plots
+penguins %>% 
+  ggplot(aes(x = species, y = flipper_length_mm, fill = species)) + 
+  geom_boxplot() + 
+  scale_fill_manual(values = c("#ff7600", "#c05ccb", "#067075")) +
+        labs(title = "Penguin flipper lengths by species",
+       x = "Species",
+       y = "Flipper length (mm)",
+       caption = "Data source: palmerpenguins R package") +
+  theme(legend.position = "none")
+
+```
+
+**What do we observe based on the side-by-side box plots?**
+
+All the species have similar variability and Adelie has minimum flipper length and Gentoo has maximum flipper length.
+Adelie Species has outliers but not too far away.
+
+
+### Modifying the previously provided code, recreate the side-by-side box plots below.
+
+```{r sideBYsideBoxPlots2}
+# Creating side-by-side box plots
+penguins %>% 
+  ggplot(aes(x = island, y = body_mass_g, fill = island)) + 
+  geom_boxplot() + 
+  scale_fill_manual(values = c("#1F77B4", "#2CA02C", "#D62728")) +
+        labs(title = "Penguin body masses by islands",
+       x = "Island",
+       y = "Body Mass (g)",
+       caption = "Data source: palmerpenguins R package") +
+  theme(legend.position = "none")
+```
+
+
+
+### Lastly, for two categorical variables, a clustered bar chart or dumbbell chart are the more commonly used visualizations.
+
+```{r ClusteredBarChart}
+# Creating a clustered bar chart
+penguins %>% dplyr::count(species, sex, .drop = FALSE) %>% 
+    dplyr::filter(!is.na(species), !is.na(sex)) %>% 
+  mutate(sex = fct_reorder(sex, n)) %>% 
+  ggplot(aes(x = sex, y = n,
+             fill = species)) + 
+  geom_col(position="dodge", color = "black") +
+  scale_fill_manual(values = c("#ff7600", "#c05ccb", "#067075")) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.10))) +
+    labs(title = "Distribution of penguin species by sex",
+       x = "Sex",
+       y = "Frequency",
+       caption = "Data source: palmerpenguins R package",
+       fill = "Species")
+```
+
+### Dumbbell Chart
+
+```{r dumbellChart}
+
+# Creating dumbbell chart
+penguins %>% dplyr::count(species, sex, .drop = FALSE) %>% 
+  dplyr::filter(!is.na(species), !is.na(sex)) %>% 
+  dplyr::mutate(species_sex = str_c(species, "_", sex)) %>% 
+  ggplot(aes(x = n, y = sex,
+             color = species, fill = species)) + 
+  geom_line(aes(group = sex), color = "black") +
+    geom_point(pch = 21, color = "black", size = 5) +
+  scale_fill_manual(values = c("#ff7600", "#c05ccb", "#067075")) +
+      labs(title = "Distribution of penguin species by sex",
+           x = "Frequency",
+           y = "Sex",
+           caption = "Data source: palmerpenguins R package",
+       fill = "Species") +
+  theme(legend.position = "bottom")
+```
+
+
+**What can we say about the penguin sex and species based on the clustered bar chart and dumbbell chart?**
+
+Male Gentoo Species are more in number than female Gentoo Species and the rest of species are same in number with respect to sex.
+
+
+## Multivariate analyses
+
+Descriptive statistics could also be obtained jointly for three or more variables, although this is less commonly done. For example, we could obtain counts for the cross-section of the species, island, and sex variables.
+
+```{r MultivariateExample}
+# Creating frequency table
+speciesIslandSexCounts <- penguins %>% 
+  dplyr::count(species, island, sex, .drop = FALSE)
+
+# Printing frequency table
+speciesIslandSexCounts %>% 
+  make_flex(caption = "Number of penguins by island, species, and sex.")
+```
+
+
+## Multivariate visualizations
+
+If we want to jointly visualize three variables, we can use a scatter plot coloring the points based on a third variable.
+Let’s look at the relationship between the penguin flipper lengths and body masses while coloring the points based on the penguin species.
+
+```{r MultivariateScatterplot}
+# Creating a scatter plot
+penguins %>% 
+  ggplot(aes(x = body_mass_g, y = flipper_length_mm, fill = species)) + 
+  geom_point(pch = 21, color = "white") +
+    scale_fill_manual(values = c("#ff7600", "#c05ccb", "#067075")) +
+    labs(title = "Penguin flipper lengths by body mass",
+       x = "Body mass (g)",
+       y = "Flipper length (mm)",
+       fill = "Species",
+       caption = "Data source: palmerpenguins R package") +
+  theme(legend.position = "bottom")
+```
+
+
+**What can we say about the relationship between the penguin flipper lengths (mm) and body masses (g) for each penguin species based on the scatter plot?**
+
+If we consider the linearity of each species, their slopes are different.
+
+### An alternative way to incorporate the information of an additional categorical variable in a plot is to use *faceting*, breaking up the plot into multiple subplots. Below we showcase the relationship between the penguin flipper lengths (mm) and body masses (g) for each penguin species using faceting.
+
+
+```{r MultivariateFascetedScatterplot}
+# Creating a faceted scatter plot
+penguins %>% 
+  ggplot(aes(x = body_mass_g, y = flipper_length_mm, fill = species)) + 
+  geom_point(pch = 21, color = "white") +
+    scale_fill_manual(values = c("#ff7600", "#c05ccb", "#067075")) +
+  facet_grid(species ~ .) +
+    labs(title = "Penguin flipper lengths by body mass",
+       x = "Body mass (g)",
+       y = "Flipper length (mm)",
+       fill = "Species",
+       caption = "Data source: palmerpenguins R package") +
+  theme(legend.position = "bottom",
+        strip.background.y = element_rect(linetype = "solid", color = "black"))
+```
+
+
+### Faceted Dumbell chart
+
+
+**What are some main takeaways from the faceted dumbbell chart?**
+
+Gentoo is large in number and is found only in Biscoe island.
+
+Chinstrap is low in number and is found only in Dream island.
+
+Adelie is lowest in number in each island and is found in all islands.
+
+
+
