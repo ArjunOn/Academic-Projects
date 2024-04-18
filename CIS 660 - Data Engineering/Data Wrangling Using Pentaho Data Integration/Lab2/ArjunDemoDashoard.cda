@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CDADescriptor>
+   <DataSources>
+      <Connection id="ProdLineSalesByYearQuery" type="mondrian.jndi">
+         <Catalog>mondrian:/SteelWheels</Catalog>
+         <Jndi>SampleData</Jndi>
+      </Connection>
+      <Connection id="SalesByProductCountry" type="mondrian.jndi">
+         <Catalog>mondrian:/SteelWheels</Catalog>
+         <Jndi>SampleData</Jndi>
+      </Connection>
+   </DataSources>
+   <DataAccess access="public" connection="ProdLineSalesByYearQuery"
+               id="ProdLineSalesByYearQuery"
+               type="mdx">
+      <Name>ProdLineSalesByYearQuery</Name>
+      <BandedMode>compact</BandedMode>
+      <Cache duration="3600" enabled="true"/>
+      <Columns/>
+      <Parameters/>
+      <Query><![CDATA[select NON EMPTY({Descendants([Product].[All Products] ,[Product].[Line])}) on ROWS, 
+ NON EMPTY({Descendants([Time].[All Years] ,[Time].[Years])}) on Columns 
+ from [SteelWheelsSales]]]></Query>
+   </DataAccess>
+   <DataAccess access="public" connection="SalesByProductCountry" id="SalesByProductCountry"
+               type="mdx">
+      <Name>SalesByProductCountry</Name>
+      <BandedMode>compact</BandedMode>
+      <Cache duration="3600" enabled="true"/>
+      <Columns/>
+      <Parameters/>
+      <Query><![CDATA[select NON EMPTY({Descendants([Markets].[All Markets] ,[Markets].[Country])}) on ROWS, 
+       NON EMPTY({Descendants([Product].[All Products] ,[Product].[Line])}) on Columns 
+from [SteelWheelsSales]]]></Query>
+   </DataAccess>
+</CDADescriptor>

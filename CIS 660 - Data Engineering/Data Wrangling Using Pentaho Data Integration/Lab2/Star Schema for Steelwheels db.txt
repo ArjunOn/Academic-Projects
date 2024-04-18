@@ -1,0 +1,42 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table Product_dimension {
+  product_ID integer [primary key]
+  product_name varchar
+  product_line varchar
+  product_vendor varchar
+}
+
+Table Customer_dimension {
+  customer_ID integer [primary key]
+  customer_name varchar
+  city varchar
+  country varchar
+  zipcode integer
+}
+
+Table Time_dimension {
+  Time_ID integer [primary key]
+  date integer
+  month varchar
+  quarter integer
+  year integer
+}
+
+Table Markets_dimension {
+  market_ID integer [primary key]
+  territory varchar
+  country varchar
+  state_province varchar
+  city varchar
+}
+
+Table Sales_Facts {
+  product_ID integer [ref: > Product_dimension.product_ID]
+  customer_ID integer [ref: > Customer_dimension.customer_ID]
+  Time_ID integer [ref: > Time_dimension.Time_ID]
+  market_ID integer [ref: > Markets_dimension.market_ID]
+  sales integer
+  quantity integer
+}
