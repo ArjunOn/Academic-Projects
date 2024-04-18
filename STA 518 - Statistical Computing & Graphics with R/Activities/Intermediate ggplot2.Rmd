@@ -1,0 +1,395 @@
+---
+title: "Intermediate-ggplot2"
+author: "Arjun Mannem"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(riskCommunicator)
+library(tidyverse)
+library(skimr)
+library(knitr)
+library(ggthemes)
+library(ggpubr)
+library(patchwork)
+```
+
+First, let’s load the FHS data set from the riskCommunicator package using the code below. Then, submit ?framingham to the Console to view the help file for the Framingham data set in RStudio.
+
+```{r}
+data(framingham, package = "riskCommunicator")
+
+```
+
+Select the first 10 variables from the Framingham dataset and store it as a new data frame called framinghamSub using the select() function. Also, update the SEX variable to have the values “Male” and “Female” rather than 1 and 2, and the CURSMOKE variable to have the values “Yes” and “No” rather than 1 and 0 using the mutate() and case_when() functions. This should be your new dataset to be used for the rest of the assignment.
+
+```{r}
+framinghamSub <- framingham |>
+  dplyr::select(1:10) |>
+  mutate(SexNew = case_when(SEX == 1 ~ "Male",
+                            SEX == 2 ~ "Female",
+                            TRUE ~ "Other"),
+         CurSmokeNew = case_when(CURSMOKE == 0 ~ "No",
+                            CURSMOKE == 1 ~ "Yes",
+                            TRUE ~ "Other"))
+
+```
+
+
+Use the skim() function from the skimr package to explore other characteristics of the subset of the data.
+
+```{r}
+library(skimr)
+
+skim(framinghamSub)
+```
+
+Modify the code below to set a default ggplot theme for the entire document to a complete theme of your choice from the ggplot2 package or the ggthemes package.
+
+```{r}
+theme_set(ggthemes::theme_few())
+```
+
+Make a scatter plot between diastolic (DIABP) and systolic (SYSBP) blood pressure with a “facet” by the sex of the participant (SEX). 
+```{r}
+framinghamSub |> 
+  ggplot(aes(x = SYSBP, y = DIABP)) +
+  geom_point() +
+  facet_grid(. ~ SexNew) #Try  facet_grid(CurSmokeNew ~ SexNew)
+
+```
+
+Also manually set the alpha aesthetic to be 0.2. 
+
+```{r}
+framinghamSub |> 
+  ggplot(aes(x = SYSBP, y = DIABP)) +
+  geom_point(alpha = 0.2) +
+  facet_grid(CurSmokeNew ~ SexNew)
+
+```
+
+
+Add a guides(color = FALSE) layer to suppress the legend since it is redundant.
+
+```{r}
+framinghamSub |>
+  ggplot(aes(x = SYSBP, y = DIABP,
+             size = CIGPDAY,
+             color = SexNew)) +
+  geom_point(alpha = 0.3) +
+  facet_grid(. ~ SexNew) +
+  guides(color = "none") +
+  labs(title = "Diastolic by Systolic pressure",
+       y = "Diastolic BP (mmHg)",
+       x = "Systolic BP (mmHg)")
+
+```
+
+Also include the size of the data points as mapped by the number of cigarettes smoked per day (CIGPDAY), add a color-blind friendly palette for coloring the points, and position the legend at the bottom of the plot.
+
+```{r}
+framinghamSub |>
+  ggplot(aes(x = SYSBP, y = DIABP,
+             size = CIGPDAY,
+             color = SexNew)) +
+  geom_point(alpha = 0.3) +
+  scale_color_colorblind() +
+  facet_grid(. ~ SexNew) +
+  guides(color = "none") +
+  labs(title = "Diastolic by Systolic pressure",
+       y = "Diastolic BP (mmHg)",
+       x = "Systolic BP (mmHg)",
+       caption = "Data Source: Framington Heart Study, https://www.framinghamheartstudy.org/",
+       size = "Cigarettes Smoked daily") +
+  theme(legend.position = "bottom")
+
+```
+
+Add a line of best fit corresponding to a simple linear regression model fit separately for males and females using geom_smooth().
+
+```{r}
+framinghamSub |>
+  ggplot(aes(x = SYSBP, y = DIABP,
+             size = CIGPDAY,
+             color = SexNew)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE,
+              color = "#0076B6", size = 0.8) +
+  scale_color_colorblind() +
+  facet_grid(. ~ SexNew) +
+  guides(color = "none") +
+  labs(title = "Diastolic by Systolic pressure",
+       y = "Diastolic BP (mmHg)",
+       x = "Systolic BP (mmHg)",
+       caption = "Data Source: Framington Heart Study, https://www.framinghamheartstudy.org/",
+       size = "Cigarettes Smoked daily") +
+  theme(legend.position = "bottom")
+
+```
+
+Add the estimated regression equations to each sub-plot using the ggpubr package and adding a stat_regline_equation(label.x = 210, label.y = 40, size = 3.2) layer.
+
+```{r}
+framinghamSub |>
+  ggplot(aes(x = SYSBP, y = DIABP,
+             size = CIGPDAY,
+             color = SexNew)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE,
+              color = "#0076B6", size = 0.8) +
+  scale_color_colorblind() +
+  facet_grid(. ~ SexNew) +
+  guides(color = "none") +
+  labs(title = "Diastolic by Systolic pressure",
+       y = "Diastolic BP (mmHg)",
+       x = "Systolic BP (mmHg)",
+       caption = "Data Source: Framington Heart Study & the riskCommunicator package \n https://www.framinghamheartstudy.org/",
+       size = "Cigarettes Smoked daily") +
+  stat_regline_equation(label.x = 210,label.y = 40,size = 3.2) +
+  theme(legend.position = "bottom")
+
+```
+
+## Boxplots
+
+Next, create a side-by-side box-plot where the y-axis is total cholesterol (TOTCHOL) and the x-axis is current smoking status (CURSMOKE). Increase the font size for the axes and title text in the plot
+
+```{r}
+# creating a side-by-side box plots
+framinghamSub |>
+  ggplot(aes(x = CurSmokeNew, y = TOTCHOL, fill = CurSmokeNew)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("royalblue","mediumseagreen")) +
+  labs(title = "Total Cholesterol by smoking status",
+       y = "Serum Total Cholesterol (mg/dL)",
+       x = "Current Smoker",
+       caption = "Data Source: Framington Heart Study & the riskCommunicator package \n https://www.framinghamheartstudy.org/") +
+  theme_few(base_size = 16) +
+  theme(legend.position = "none")
+
+```
+ 
+Color the boxes based on smoking status by manually specifying the colors to be "mediumseagreen" and "royalblue", remove the legend, and make the title and axis titles bold.
+ 
+```{r}
+# creating a side-by-side box plots
+framinghamSub |>
+  ggplot(aes(x = CurSmokeNew, y = TOTCHOL, fill = CurSmokeNew)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("royalblue","mediumseagreen")) +
+  labs(title = "Total Cholesterol by smoking status",
+       y = "Serum Total Cholesterol (mg/dL)",
+       x = "Current Smoker",
+       caption = "Data Source: Framington Heart Study & the riskCommunicator package \n https://www.framinghamheartstudy.org/") +
+  theme_few(base_size = 16) +
+  theme(legend.position = "none", 
+        plot.title = element_text(face = "bold", color = "red"),
+        axis.title.x = element_text(face = "bold"),
+        axis.title.y = element_text(face = "bold"))
+
+```
+
+In a new plot, modify the side-by-side box-plots we created to be faceted by the sex of the participant using the facet_grid() function and columns to break up the subplots.
+
+```{r}
+# creating a side-by-side box plots
+framinghamSub |>
+  ggplot(aes(x = CurSmokeNew, y = TOTCHOL, fill = CurSmokeNew)) +
+  geom_boxplot() +
+  facet_grid(. ~ SexNew) +
+  scale_fill_manual(values = c("royalblue","mediumseagreen")) +
+  labs(title = "Total Cholesterol by smoking status",
+       y = "Serum Total Cholesterol (mg/dL)",
+       x = "Current Smoker",
+       caption = "Data Source: Framington Heart Study & the riskCommunicator package \n https://www.framinghamheartstudy.org/") +
+  theme_few(base_size = 16) +
+  theme(legend.position = "none", 
+        plot.title = element_text(face = "bold", color = "red"),
+        axis.title.x = element_text(face = "bold"),
+        axis.title.y = element_text(face = "bold"))
+
+```
+
+## Linechart
+
+Make a line graph that shows the average cigarettes per day (CIGPDAY) by age (AGE), with separate lines by the sex of the participant (SEX).
+
+```{r}
+framinghamSub |>
+  ggplot() +
+  stat_summary(aes(x = AGE,
+                   y = CIGPDAY,
+                   color = SexNew,
+                   group = SexNew),
+               geom = "line",
+               fun.y = mean,
+               size = 1) +
+  scale_color_colorblind() +
+  labs(title = "Average cigarettes per day by age and sex",
+       y = "Average cigarettes per day",
+       x = "Age (years)",
+       color = "Sex",
+       caption = "Data Source: Framington Heart Study & the riskCommunicator package \n https://www.framinghamheartstudy.org/") +
+  theme_few(base_size = 16) +
+  theme(plot.title = element_text(face = "bold", color = "red"),
+        axis.title.x = element_text(face = "bold"),
+        axis.title.y = element_text(face = "bold"))
+```
+
+## Combining plots with patchwork
+
+Combine the line chart and the faceted scatter plots together into a single graphic using the patchwork package, with 1 plot per row and the line chart on top.
+
+```{r}
+my_linechart <- framinghamSub |>
+  ggplot() +
+  stat_summary(aes(x = AGE,
+                   y = CIGPDAY,
+                   color = SexNew,
+                   group = SexNew),
+               geom = "line",
+               fun.y = mean,
+               size = 1) +
+  scale_color_colorblind() +
+  labs(title = "Average cigarettes per day by age and sex",
+       y = "Average cigarettes per day",
+       x = "Age (years)",
+       color = "Sex",
+       caption = "Data Source: Framington Heart Study & the riskCommunicator package \n https://www.framinghamheartstudy.org/") +
+  theme_few(base_size = 10) +
+  theme(plot.title = element_text(face = "bold", color = "red"),
+        axis.title.x = element_text(face = "bold"),
+        axis.title.y = element_text(face = "bold"))
+
+my_scatterplot <- framinghamSub |>
+  ggplot(aes(x = SYSBP, y = DIABP,
+             size = CIGPDAY,
+             color = SexNew)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "lm", se = FALSE,
+              color = "#0076B6", size = 0.8) +
+  scale_color_colorblind() +
+  facet_grid(. ~ SexNew) +
+  guides(color = "none") +
+  labs(title = "Diastolic by Systolic pressure",
+       y = "Diastolic BP (mmHg)",
+       x = "Systolic BP (mmHg)",
+       caption = "Data Source: Framington Heart Study & the riskCommunicator package \n https://www.framinghamheartstudy.org/",
+       size = "Cigarettes Smoked daily") +
+  stat_regline_equation(label.x = 210,label.y = 40,size = 3.2) +
+  theme(legend.position = "bottom")
+
+library(patchwork)
+
+my_linechart / my_scatterplot
+```
+
+
+## Barchart
+
+```{r}
+framinghamSub <- framinghamSub |> 
+  mutate(CholesterolCat = case_when(TOTCHOL < 200 ~ "Normal",
+                                    TOTCHOL >= 200 &  TOTCHOL < 240 ~ "Borderline high",
+                                    TOTCHOL > 240 ~ "High",
+                         TRUE ~ as.character(NA)))
+```
+
+
+Create a bar chart displaying the number of participants falling in each cholesterol category based on Johns Hopkins’ definitions using geom_bar(). Also, remove people under 40 and those without recorded cholesterol levels (missing values for CholesterolCat) from the plot by using the code filter(AGE >= 40, !is.na(CholesterolCat)) when piping the data into each subsequent ggplot() call.
+
+Recreate the bar chart, this time reordering the categories to show Normal, Borderline high, and then High from left to right using the fct_relevel() function.
+
+Change the color of the inside of the bars based on the cholesterol category using a color-blind friendly palette, make the outline of the bars black in color, facet by the sex of the participant, and remove the legend.
+```{r}
+my_bar <- framinghamSub |> 
+  filter(AGE >= 40, !is.na(CholesterolCat)) |>
+  ggplot(aes(x = fct_relevel(CholesterolCat,"Normal","Borderline high", "High"),
+             fill = CholesterolCat)) +
+  scale_fill_viridis_d() +
+  geom_bar(color = "black") + 
+  facet_grid(.~SexNew) +
+  labs(title = "Distribution of Cholesterol levels",
+       x = "Cholesterol category",
+       y = "Frequency",
+       caption = "Data Source: Framington Heart Study & the riskCommunicator package \n https://www.framinghamheartstudy.org/") +
+  theme(legend.position = "none")
+
+my_bar
+```
+
+Remove the extra space between the bars and the horizontal axis.
+
+```{r}
+my_bar <- my_bar +
+  scale_y_continuous(expand = expansion(mult = c(0,0.1)))
+
+my_bar
+  
+```
+
+
+Lastly, use the coor_flip() function to turn the bar chart into a horizontal bar chart instead.
+
+```{r}
+my_bar +
+  coord_flip()
+  
+```
+
+Recreate the line chart below showing the median BMI by age for smokers and non-smokers. Hint: use a scale_color_manual() layer to match the colors.
+
+```{r}
+framinghamSub |>
+  ggplot() +
+  stat_summary(aes(x = AGE,
+                   y = BMI,
+                   color = CurSmokeNew,
+                   group = CurSmokeNew),
+               geom = "line",
+               fun.y = median,
+               size = 1) +
+  scale_color_manual(values = c("mediumseagreen","royalblue")) +
+  labs(title = "Median BMI by age and smoking status",
+       y = "Median Body Mass Index",
+       x = "Age (years)",
+       color = "Current Smoker",
+       caption = "Data Source: Framington Heart Study & the riskCommunicator package \n https://www.framinghamheartstudy.org/") +
+  theme_few(base_size = 16) +
+  theme(legend.position = "bottom") +
+  xlim(40,70)
+  
+```
+
+
+
+We can use scale_x_continuous(limits = c(40,70)) or xlim(40,70) or dplyr::filter(between(AGE.40,70))
+
+Recreate the faceted dumbbell chart below showing the same information as the faceted bar chart. Hint: One way to create a dumbbell chart is to use geom_point(size = 4, pch = 21) and geom_line().
+
+```{r}
+framinghamSub |> 
+  dplyr::count(CholesterolCat,SexNew,.drop = FALSE) |>
+  dplyr::filter( !is.na(CholesterolCat)) |>
+  ggplot(aes(x = n,y = SexNew, color = CholesterolCat, fill = CholesterolCat)) + 
+  scale_fill_viridis_d() +
+  geom_line(aes(group = SexNew),color = "black") +
+  geom_point(color = "black",size = 4, pch = 21) +
+  labs(title = "Distribution of Cholesterol levels",
+       x = "Frequency",
+       y = "",
+       fill = "Cholesterol category:",
+       caption = "Data Source: Framington Heart Study & the riskCommunicator package \n https://www.framinghamheartstudy.org/") +
+  theme(legend.position = "bottom")
+
+```
+

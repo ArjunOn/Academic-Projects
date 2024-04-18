@@ -1,0 +1,153 @@
+---
+title: "Importing and Exporting Data"
+author: "Arjun Mannem"
+date: "`r format(Sys.Date(), '%A, %B %d, %Y')`"
+output:
+  word_document: default
+  html_document: default
+---
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+```{r }
+library(data.table)
+library(tidyverse)
+library(arrow)
+library(bench)
+library(flextable)
+library(ggbeeswarm)
+```
+
+### Importing data from outside R
+
+Import the possum.csv data directly from the URL https://raw.githubusercontent.com/dilernia/STA418-518/main/Data/possum.csv into R using the read.csv() function creating an object called possums. Print the first 5 rows of the data using the slice_head() function and the first 6 columns using the select() function as in the code below.
+
+
+```{r}
+possums <- read.csv("https://raw.githubusercontent.com/dilernia/STA418-518/main/Data/possum.csv")
+
+possums|>
+  dplyr:: select(1:6) |>
+  slice_head(n = 5) |>
+  flextable() |>
+  autofit()
+
+```
+
+Download the csv file we just imported, but then use the import wizard to import the possum.csv data using the read.csv() function as well.
+ 
+*read as possums*
+ 
+Download the parquet file from the URL https://raw.githubusercontent.com/dilernia/STA418-518/main/Data/possum.parquet and then import the data into R using the read_parquet() function from the arrow package using the code below. Display a subset of the data, only the first 5 rows of the data and the first 8 columns, and print the subset using the flextable() function.
+
+```{r}
+library(arrow)
+
+# Downloading file from GitHub
+download.file(url = "https://raw.githubusercontent.com/dilernia/STA418-518/main/Data/possum.parquet", destfile = "possum.parquet", mode = "wb")
+
+# Import after manually downloading file
+possums_parquet_data <- read_parquet("possum.parquet")
+```
+
+Import the possum.csv data directly from the URL https://raw.githubusercontent.com/dilernia/STA418-518/main/Data/possum.csv into R using the fread() function from the data.table package.
+
+```{r}
+possum_fread <- fread("https://raw.githubusercontent.com/dilernia/STA418-518/main/Data/possum.csv")
+```
+
+Let’s compare how quickly these functions import and export slightly larger data from R. 
+
+First, we simulate data with 50,000 observations, 2 variables, and roughly 10% of its values being missing. 
+
+```{r}
+# Generating 'big data'
+set.seed(1994)
+x <- runif(5e4)
+y <- runif(5e4)
+x[sample(5e4, 5e3)] <- NA
+y[sample(5e4, 5e3)] <- NA
+bigData <- as.data.frame(x = x, y = y)
+
+# Saving as CSV file w/ data.table
+fwrite(bigData, "bigData.csv")
+
+# Saving as parquet file
+write_parquet(bigData, "bigData.parquet")
+
+# Saving as RDS file
+write_rds(bigData, "bigData.rds")
+```
+
+Reproduce the table and violin plots below comparing the differences in import speeds between the various functions using the code below.
+
+```{r}
+library(bench)
+
+# Comparing run times
+readBmResult <- mark(read.csv("bigData.csv"), read_csv("bigData.csv", show_col_types = FALSE), 
+               fread("bigData.csv"), read_rds("bigData.rds"),
+     read_parquet("bigData.parquet", as_tibble = TRUE),
+     check = FALSE, min_iterations = 5) 
+
+ggObj <- plot(readBmResult)
+
+importTimes <- ggObj$data |> mutate(expression = paste0(map_chr(str_split(expression, pattern = "[(]"), 1), "()"))
+
+# Printing table
+importTimes |> 
+  arrange(desc(median)) |> 
+  dplyr::select(expression:mem_alloc) |> 
+  distinct() |> 
+  flextable() |> 
+  autofit()
+
+```
+
+```{r}
+# Creating violin plots
+importTimes |> ggplot(aes(x = time, y = fct_reorder(expression, time))) + 
+  geom_violin(fill = "dodgerblue") + 
+  geom_jitter(height = 0.2, pch=21, fill = "black", color = "white") + 
+  labs(title = "Comparison of read times", y = "", x = "Run time") + theme_bw()
+```
+
+
+### Exporting data from R
+
+Reproduce the table and violin plots below comparing the differences in export speeds between the various functions using the code below.
+
+```{r}
+library(bench)
+
+# Comparing run times
+writeBmResult <- mark(write.csv(bigData,"bigData.csv"), write_csv(bigData,"bigData.csv"), 
+               fwrite(bigData,"bigData.csv"), write_rds(bigData,"bigData.rds"),
+     write_parquet(bigData,"bigData.parquet"),
+     check = FALSE, min_iterations = 5) 
+
+ggObj <- plot(writeBmResult)
+
+exportTimes <- ggObj$data |> mutate(expression = paste0(map_chr(str_split(expression, pattern = "[(]"), 1), "()"))
+
+# Printing table
+exportTimes |> 
+  arrange(desc(median)) |> 
+  dplyr::select(expression:mem_alloc) |> 
+  distinct() |> 
+  flextable() |> 
+  autofit()
+
+```
+
+
+```{r}
+# Creating violin plots
+exportTimes |> ggplot(aes(x = time, y = fct_reorder(expression, time))) + 
+  geom_violin(fill = "dodgerblue") + 
+  geom_jitter(height = 0.2, pch=21, fill = "black", color = "white") + 
+  labs(title = "Comparison of write times", y = "", x = "Run time") + theme_bw()
+```
+
+

@@ -1,0 +1,366 @@
+---
+title: "Fundamentals of Functions in R"
+author: "Arjun Mannem"
+date: "`r format(Sys.Date(), '%A, %B %d, %Y')`"
+output:
+  rmdformats::readthedown:
+    css: gvsu_readthedown_theme.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warnings = FALSE,error = TRUE)
+```
+
+**First, let’s load packages necessary for this activity using the code below. Note: you may need to install packages beforehand by using the install.packages() function and the package name in quotes.**
+
+```{r}
+library(tidyverse)
+library(stringr)
+library(lubridate)
+```
+
+## Example function
+
+```{r}
+# Creating a function called mySum with 2 required arguments
+mySum <- function(number1, number2) {
+  return(number1 + number2)
+}
+
+# Defaulting to order of arguments in function
+mySum(5, 3)
+
+# Manually specifying arguments
+mySum(number1 = 5, number2 = 3)
+
+mySum(TRUE,FALSE)
+```
+
+**Create the mySum() function, and use it to calculate the sum of 13 and 1989.**
+
+```{r}
+mySum(13,1989)
+```
+
+**What happens when we calculate the sum of NA and 1989?**
+
+```{r}
+mySum(NA,1989)
+```
+## You try
+
+**Copy the code creating the myNewSum() function below and add comments to communicate the purpose of different parts of the code.**
+
+```{r}
+# Function to calcuulate sum of two numbers and possibly remove the missing values.
+## number1: a single numeric value
+## number2: a single numeric value
+## remove.na: whether to remove missing values (TRUE) or not (FALSE)
+
+myNewSum <- function(number1, number2, remove.na = TRUE) {
+  if(remove.na) {
+    calcSum <- ifelse(is.na(number1), 0, number1) + 
+         ifelse(is.na(number2), 0, number2)
+  } else {
+    calcSum <- number1 + number2
+  }
+  return(calcSum)
+}
+```
+
+**Read the source code for each of the following three functions, determine the purpose of each function, and propose better function names.**
+
+```{r}
+# Function to check if the prefix matches
+check_prefix <- function(string, prefix) {
+  str_sub(string, 1, nchar(prefix)) == prefix
+}
+
+check_prefix("anti-establishment","anti")
+
+
+# Function to drop last value in a vector
+drop_last <- function(my_vector) {
+  if (length(my_vector) <= 1) return(NULL)
+  else return(my_vector[-length(my_vector)])
+}
+
+drop_last(1:5)
+
+
+# Harmonic Mean
+harmonic_mean <- function(x) {
+  return (1 / (mean(1 / x)))
+}
+
+harmonic_mean(1:5)
+```
+
+**Create a new function to calculate the geometric mean of a vector of numbers which is equal to the nth root of the product of n numbers.**
+
+```{r}
+
+geometric_mean <- function(values) {
+  return(exp(mean(log(values))))
+  #return ((prod(values)^(1/length(values)))) #gives Infinity for large number
+}
+
+geometric_mean(1:10)
+```
+
+## Conditional execution, warnings, and errors
+
+```{r}
+# Function to calculate square root
+calcSqrt <- function(val) {
+if (val >= 0) {
+  return(val^0.5)
+} else {
+  warning("val is negative but must be >= 0!")  
+  #stop("val is negative but must be >= 0!") 
+  #message("If you need to drop a message")
+  return(NaN)
+}
+}
+
+calcSqrt(4)
+## [1] 2
+calcSqrt(-9)
+## [1] NaN
+
+```
+
+```{r}
+
+foodType <- function(food) {
+if (food %in% c("apple", "orange", "banana")) {
+  return("fruit")
+} else if(food %in% c("broccoli", "asparagus")) {
+  return("vegetable")
+} else {
+  return("other")
+}}
+
+foodType("Reese's Puffs")
+foodType("orange")
+```
+
+**Create a function called is.whole.number(), which checks if a given value is a whole number (e.g., 0, 1, 2, …) or not.**
+
+```{r}
+
+is_whole_number <- function(x){
+  if(x>=0 & (x %% 1)==0) return(TRUE)
+  else return(FALSE)
+  
+
+  #efficient way
+  ##if(x%%1 == 0) return(FALSE)
+  ##if(x<0) return(FALSE)
+  ##]else return(TRUE)
+}
+
+is_whole_number(-1)
+is_whole_number(0)
+is_whole_number(3)
+is_whole_number(3.1)
+
+```
+
+**The ^ operator raises a number to a specified power in R. Create a function that raises a number to a specified power, and returns a warning and an NaN value if the number is negative and the power is not a whole number.**
+
+```{r}
+raise_power <- function(number, power){
+  
+}
+```
+
+
+
+
+## The ifelse() function
+
+```{r}
+# Creating a function called calculate_sum with 2 required arguments, 1 optional argument
+calculate_sum <- function(number1, number2, remove_na = TRUE) {
+  if(remove_na) {
+    calcSum <- ifelse(is.na(number1), 0, number1) + 
+         ifelse(is.na(number2), 0, number2)
+  } else {
+    calcSum <- number1 + number2
+  }
+  return(calcSum)
+}
+
+calculate_sum(13,1989)
+```
+
+What happens when we calculate the sum of NA and 1989 using calculate_sum()?
+
+It replace NA by 0. result = 1989.
+
+## Logical operators
+
+```{r}
+# The 'or' operator
+(3 < 5) || (-1 > 0)
+
+# The 'and' operator
+(3 < 5) && (-1 > 0)
+```
+
+```{r}
+# The 'equals' operator
+3 == 5
+(4/2) == 2
+
+3 != 5
+# Vectorized examples
+1:4
+1:4 == 3
+
+(1:4 < 4) & (1:4 > 1)
+
+(1:4 < 4) | (1:4 > 1)
+
+```
+
+Create a function that takes a numeric vector as input, and returns a single boolean value indicating whether or not the vector has any negative values.
+
+```{r}
+any_negatives1 <- function(vector) {
+  any_negative <- sum(vector) != sum(abs(vector))
+  return(any_negative)
+}
+
+any_negatives2 <- function(vector) {
+  any_negative <- !near(sum(vector),sum(abs(vector)))
+  return(any_negative)
+}
+
+any_negatives3 <- function(vector) {
+  any_negative <- any(vector < 0)
+  return(any_negative)
+}
+
+any_negatives1(c(1,0,pi,-1))
+any_negatives2(c(1,0,pi,-1))
+any_negatives3(c(1,0,pi,-1))
+```
+
+Does the code (1:4 < 4) & (1:4 > 1) produce the same result as (1:4 < 4) && (1:4 > 1)? Which code achieves what appears to be its intended purpose?
+
+(1:4 < 4) & (1:4 > 1)
+
+## You try
+
+Create a function to check if a number is even or odd that returns a vector containing the values “even”, “odd”, or “not an integer” depending on its input.
+
+```{r}
+even_or_odd <- function(int_vector){
+  
+  return(ifelse(int_vector %% 1 != 0,"not an integer",
+         ifelse(int_vector %% 2 == 0, "even","odd")))
+  
+}
+
+even_or_odd(c(2,5,pi))
+```
+
+Create a function called print_greeting() that has a single argument, date, with a default value of today(), such that print_greeting() prints the following greeting when called:
+
+```{r}
+print_greeting <- function(user,date = today()){
+  message <- paste0("Hello ",user,"! Today is ", 
+                    wday(date, abbr = FALSE, label = TRUE),
+                    ".")
+  return(message)
+}
+
+print_greeting("Arjun")
+
+```
+
+Extend the print_greeting() function to include the date as well like in the message below. Hint: use scales::ordinal(lubridate::day(today())) to display the date with the ordinal (th or nd) included.
+
+```{r}
+library(purrr)
+
+print_greeting <- function(user,date = today()){
+  message <- paste0("Hello ",user,"! Today is ", 
+                    wday(date, abbr = FALSE, label = TRUE),
+                    ",", month(date, label = TRUE, abbr = FALSE),
+                    scales::ordinal(lubridate::day(today())),
+                    ".")
+  return(message)
+}
+
+print_greeting("Arjun")
+
+```
+
+
+Further extend the print_greeting() function to have an optional argument, user, that customizes who the greeting is for and has a default value of Sys.info()[["user"]] as shown below.
+
+```{r}
+library(purrr)
+
+print_greeting <- function(date = today(),user = Sys.info()[["user"]]){
+  message <- paste0("Hello ",user,"! Today is ", 
+                    wday(date, abbr = FALSE, label = TRUE),
+                    ",", month(date, label = TRUE, abbr = FALSE),
+                    scales::ordinal(lubridate::day(today())),
+                    ".")
+  return(message)
+}
+
+print_greeting(user = "Florence Nightingale")
+
+```
+
+Further extend the print_greeting() function to say “Good morning” if it is in the AM, “Good afternoon” if it is after 11:59am but before 5:00pm, “Good evening” if it is after 5:00pm but before 9:00pm, and just “Hello” (or something cheeky) otherwise. Add an optional argument, time, that has a default value of Sys.time() to help us check if our function works.
+
+```{r}
+print_greeting <- function(date = today(),user = Sys.info()[["user"]], time = Sys.time()){
+  
+  time_hour <- hour(time)
+  
+  if(time_hour < 12) greeting_start <- "Good morning,"
+  else if(time_hour < 17) greeting_start <- "Good afternoon," 
+  else if(time_hour < 21) greeting_start <- "Good evening,"
+  else greeting_start <- "Hello"
+  
+  message <- paste0(greeting_start," ",user,"! Today is ", 
+                    wday(date, abbr = FALSE, label = TRUE),
+                    ",", month(date, label = TRUE, abbr = FALSE),
+                    scales::ordinal(lubridate::day(today())),
+                    ".")
+  return(message)
+}
+
+print_greeting(user = "Florence Nightingale")
+```
+
+```{r}
+# Time in morning
+morning_time <- Sys.time()
+hour(morning_time) <- 11
+
+# Time in afternoon
+afternoon_time <- Sys.time()
+hour(afternoon_time) <- 16
+
+# Time in evening
+evening_time <- Sys.time()
+hour(evening_time) <- 18
+
+# Time at night
+night_time <- Sys.time()
+hour(night_time) <- 23
+
+print_greeting(user = "Arjun",time = morning_time)
+print_greeting(user = "Arjun",time = afternoon_time)
+print_greeting(user = "Arjun",time = evening_time)
+print_greeting(user = "Arjun",time = night_time)
+```
+

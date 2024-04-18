@@ -1,0 +1,176 @@
+---
+title: "Introduction to ggplot2"
+author: "Arjun Mannem"
+date: "`r format(Sys.Date(), '%A, %B %d, %Y')`"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(palmerpenguins)
+library(tidyverse)
+library(knitr)
+```
+
+## The ggplot2 package
+
+First, let’s load the Palmer Penguins data set and explore some high-level characteristics of the data set.
+
+```{r}
+data(penguins, package = "palmerpenguins")
+
+glimpse(penguins)
+```
+
+### Plot in layers
+
+Start by creating a blank canvas using the penguins data frame.
+
+```{r}
+ggplot(data = penguins)
+```
+
+Then, in a new code chunk map bill depth to the x-axis.
+
+```{r}
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm))
+```
+
+Next, in another new code chunk, add bill length to the y-axis.
+
+```{r}
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm))
+```
+
+
+Create a scatter plot, representing each two-dimensional observation with a point by adding a geom_point() layer. Additional layers are added to a ggplot using the + operator.
+
+```{r}
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm)) + 
+         geom_point()
+```
+
+Let’s color the points in our scatter plot based on the species of the penguin being Adelie, Chinstrap, or Gentoo, reproducing the plot below.
+
+```{r}
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm,
+                     color = species)) +
+  geom_point() 
+  
+```
+
+Next, add another layer to our ggplot to customize the title and subtitle using the labs() function to reproduce the plot below.
+
+We can also customize the legend title by using the color option and a caption for the overall plot using the caption option in the labs() function. Customize the legend title to be “Species” instead of “species”, and modify the plot caption to match our overall desired plot.
+
+```{r}
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm,
+                     color = species)) +
+  geom_point() +
+  labs(x = "Bill Depth in mm",
+       y = "Bill Length in mm",
+       color = "Color by Species",
+       title = "Penguin bill length by depth",
+       subtitle = "Dimensions for Adelie, Chinstrap and Gentoo",
+       caption = "Source:R_class"
+       ) 
+  
+```
+
+Lastly, use a discrete color scale that is inclusive of viewers with common forms of color blindness by adding a scale_color_viridis_d() layer to the plot, creating the final plot below.
+
+```{r}
+ggplot(data = penguins,
+       mapping = aes(x = bill_depth_mm,
+                     y = bill_length_mm,
+                     color = species)) +
+  geom_point() +
+  labs(x = "Bill Depth in mm",
+       y = "Bill Length in mm",
+       color = "Color by species",
+       title = "Penguin bill length by depth",
+       subtitle = "Dimensions for Adelie, Chinstrap and Gentoo",
+       caption = "Source:R_class"
+       ) +
+  scale_color_viridis_d()
+  
+```
+
+
+### Mapping vs. Setting
+
+```{r}
+ggplot(penguins,
+       aes(x = bill_depth_mm,
+           y = bill_length_mm,
+           size = body_mass_g)) + 
+  geom_point()
+```
+
+Reproduce the plot below by also mapping flipper_length_mm to the alpha aesthetic.
+
+```{r}
+ggplot(penguins,
+       aes(x = bill_depth_mm,
+           y = bill_length_mm,
+           size = body_mass_g,
+           alpha = flipper_length_mm )) + 
+  geom_point()
+```
+
+```{r}
+ggplot(penguins,
+       aes(x = bill_depth_mm,
+           y = bill_length_mm,
+           alpha = flipper_length_mm)) + 
+  geom_point(size = 2, alpha = 0.50)
+```
+
+
+Is there any missing data? What is the plot doing with the missing values? Hint: consider using the skim() function from the skimr package to assess missingness.
+
+```{r}
+library(skimr)
+
+skim(penguins)
+```
+
+Reproduce the histogram of the penguin body masses displayed below using ggplot2.
+
+```{r}
+ggplot(penguins,
+       aes(x = body_mass_g)) + 
+  geom_histogram(color = "white", fill = "#252626")
+```
+
+Reproduce the box plot of the penguin body masses displayed below using ggplot2. 
+Hint: to suppress the y-axis text and ticks, add a theme(axis.text.y = element_blank(), axis.ticks.y = element_blank()) layer to the plot.
+
+```{r}
+ggplot(penguins,
+       aes(x = body_mass_g,
+           color = species)) + 
+  geom_boxplot() +
+  labs(x = "Bodymass (g)",
+       color = "Color by Species",
+       title = "Penguin bodymasses",
+       caption = "Source:Palmer Station LTER/palmerpenguins package"
+       ) +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+```
+
+

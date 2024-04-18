@@ -1,0 +1,732 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Intermediate-ggplot2},
+  pdfauthor={Arjun Mannem},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Intermediate-ggplot2}
+\author{Arjun Mannem}
+\date{2024-02-03}
+
+\begin{document}
+\maketitle
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(riskCommunicator)}
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\FunctionTok{library}\NormalTok{(skimr)}
+\FunctionTok{library}\NormalTok{(knitr)}
+\FunctionTok{library}\NormalTok{(ggthemes)}
+\FunctionTok{library}\NormalTok{(ggpubr)}
+\FunctionTok{library}\NormalTok{(patchwork)}
+\end{Highlighting}
+\end{Shaded}
+
+First, let's load the FHS data set from the riskCommunicator package
+using the code below. Then, submit ?framingham to the Console to view
+the help file for the Framingham data set in RStudio.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{data}\NormalTok{(framingham, }\AttributeTok{package =} \StringTok{"riskCommunicator"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Select the first 10 variables from the Framingham dataset and store it
+as a new data frame called framinghamSub using the select() function.
+Also, update the SEX variable to have the values ``Male'' and ``Female''
+rather than 1 and 2, and the CURSMOKE variable to have the values
+``Yes'' and ``No'' rather than 1 and 0 using the mutate() and
+case\_when() functions. This should be your new dataset to be used for
+the rest of the assignment.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{framinghamSub }\OtherTok{\textless{}{-}}\NormalTok{ framingham }\SpecialCharTok{|\textgreater{}}
+\NormalTok{  dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{10}\NormalTok{) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{SexNew =} \FunctionTok{case\_when}\NormalTok{(SEX }\SpecialCharTok{==} \DecValTok{1} \SpecialCharTok{\textasciitilde{}} \StringTok{"Male"}\NormalTok{,}
+\NormalTok{                            SEX }\SpecialCharTok{==} \DecValTok{2} \SpecialCharTok{\textasciitilde{}} \StringTok{"Female"}\NormalTok{,}
+                            \ConstantTok{TRUE} \SpecialCharTok{\textasciitilde{}} \StringTok{"Other"}\NormalTok{),}
+         \AttributeTok{CurSmokeNew =} \FunctionTok{case\_when}\NormalTok{(CURSMOKE }\SpecialCharTok{==} \DecValTok{0} \SpecialCharTok{\textasciitilde{}} \StringTok{"No"}\NormalTok{,}
+\NormalTok{                            CURSMOKE }\SpecialCharTok{==} \DecValTok{1} \SpecialCharTok{\textasciitilde{}} \StringTok{"Yes"}\NormalTok{,}
+                            \ConstantTok{TRUE} \SpecialCharTok{\textasciitilde{}} \StringTok{"Other"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+Use the skim() function from the skimr package to explore other
+characteristics of the subset of the data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(skimr)}
+
+\FunctionTok{skim}\NormalTok{(framinghamSub)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}ll@{}}
+\caption{Data summary}\tabularnewline
+\toprule\noalign{}
+\endfirsthead
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Name & framinghamSub \\
+Number of rows & 11627 \\
+Number of columns & 12 \\
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ & \\
+Column type frequency: & \\
+character & 2 \\
+numeric & 10 \\
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ & \\
+Group variables & None \\
+\end{longtable}
+
+\textbf{Variable type: character}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 14\tabcolsep) * \real{0.1944}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 14\tabcolsep) * \real{0.1389}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 14\tabcolsep) * \real{0.1944}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 14\tabcolsep) * \real{0.0556}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 14\tabcolsep) * \real{0.0556}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 14\tabcolsep) * \real{0.0833}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 14\tabcolsep) * \real{0.1250}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 14\tabcolsep) * \real{0.1528}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+skim\_variable
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+n\_missing
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+complete\_rate
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+min
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+max
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+empty
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+n\_unique
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+whitespace
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+SexNew & 0 & 1 & 4 & 6 & 0 & 2 & 0 \\
+CurSmokeNew & 0 & 1 & 2 & 3 & 0 & 2 & 0 \\
+\end{longtable}
+
+\textbf{Variable type: numeric}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 20\tabcolsep) * \real{0.1197}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 20\tabcolsep) * \real{0.0855}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 20\tabcolsep) * \real{0.1197}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 20\tabcolsep) * \real{0.0940}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 20\tabcolsep) * \real{0.0940}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 20\tabcolsep) * \real{0.0684}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 20\tabcolsep) * \real{0.0940}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 20\tabcolsep) * \real{0.0940}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 20\tabcolsep) * \real{0.0940}}
+  >{\raggedleft\arraybackslash}p{(\columnwidth - 20\tabcolsep) * \real{0.0855}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 20\tabcolsep) * \real{0.0513}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+skim\_variable
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+n\_missing
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+complete\_rate
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+mean
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+sd
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+p0
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+p25
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+p50
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+p75
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+p100
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+hist
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+RANDID & 0 & 1.00 & 5004740.92 & 2900877.44 & 2448.00 & 2474378.00 &
+5006008.00 & 7472730.00 & 9999312.0 & ▇▇▇▇▇ \\
+SEX & 0 & 1.00 & 1.57 & 0.50 & 1.00 & 1.00 & 2.00 & 2.00 & 2.0 &
+▆▁▁▁▇ \\
+TOTCHOL & 409 & 0.96 & 241.16 & 45.37 & 107.00 & 210.00 & 238.00 &
+268.00 & 696.0 & ▅▇▁▁▁ \\
+AGE & 0 & 1.00 & 54.79 & 9.56 & 32.00 & 48.00 & 54.00 & 62.00 & 81.0 &
+▂▇▇▅▁ \\
+SYSBP & 0 & 1.00 & 136.32 & 22.80 & 83.50 & 120.00 & 132.00 & 149.00 &
+295.0 & ▆▇▁▁▁ \\
+DIABP & 0 & 1.00 & 83.04 & 11.66 & 30.00 & 75.00 & 82.00 & 90.00 & 150.0
+& ▁▅▇▁▁ \\
+CURSMOKE & 0 & 1.00 & 0.43 & 0.50 & 0.00 & 0.00 & 0.00 & 1.00 & 1.0 &
+▇▁▁▁▆ \\
+CIGPDAY & 79 & 0.99 & 8.25 & 12.19 & 0.00 & 0.00 & 0.00 & 20.00 & 90.0 &
+▇▂▁▁▁ \\
+BMI & 52 & 1.00 & 25.88 & 4.10 & 14.43 & 23.09 & 25.48 & 28.07 & 56.8 &
+▃▇▁▁▁ \\
+DIABETES & 0 & 1.00 & 0.05 & 0.21 & 0.00 & 0.00 & 0.00 & 0.00 & 1.0 &
+▇▁▁▁▁ \\
+\end{longtable}
+
+Modify the code below to set a default ggplot theme for the entire
+document to a complete theme of your choice from the ggplot2 package or
+the ggthemes package.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{theme\_set}\NormalTok{(ggthemes}\SpecialCharTok{::}\FunctionTok{theme\_few}\NormalTok{())}
+\end{Highlighting}
+\end{Shaded}
+
+Make a scatter plot between diastolic (DIABP) and systolic (SYSBP) blood
+pressure with a ``facet'' by the sex of the participant (SEX).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{framinghamSub }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ SYSBP, }\AttributeTok{y =}\NormalTok{ DIABP)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{facet\_grid}\NormalTok{(. }\SpecialCharTok{\textasciitilde{}}\NormalTok{ SexNew) }\CommentTok{\#Try  facet\_grid(CurSmokeNew \textasciitilde{} SexNew)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Intermediate-ggplot2_files/figure-latex/unnamed-chunk-6-1.pdf}
+
+Also manually set the alpha aesthetic to be 0.2.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{framinghamSub }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ SYSBP, }\AttributeTok{y =}\NormalTok{ DIABP)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.2}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{facet\_grid}\NormalTok{(CurSmokeNew }\SpecialCharTok{\textasciitilde{}}\NormalTok{ SexNew)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Intermediate-ggplot2_files/figure-latex/unnamed-chunk-7-1.pdf}
+
+Add a guides(color = FALSE) layer to suppress the legend since it is
+redundant.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{framinghamSub }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ SYSBP, }\AttributeTok{y =}\NormalTok{ DIABP,}
+             \AttributeTok{size =}\NormalTok{ CIGPDAY,}
+             \AttributeTok{color =}\NormalTok{ SexNew)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.3}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{facet\_grid}\NormalTok{(. }\SpecialCharTok{\textasciitilde{}}\NormalTok{ SexNew) }\SpecialCharTok{+}
+  \FunctionTok{guides}\NormalTok{(}\AttributeTok{color =} \StringTok{"none"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Diastolic by Systolic pressure"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Diastolic BP (mmHg)"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Systolic BP (mmHg)"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Intermediate-ggplot2_files/figure-latex/unnamed-chunk-8-1.pdf}
+
+Also include the size of the data points as mapped by the number of
+cigarettes smoked per day (CIGPDAY), add a color-blind friendly palette
+for coloring the points, and position the legend at the bottom of the
+plot.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{framinghamSub }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ SYSBP, }\AttributeTok{y =}\NormalTok{ DIABP,}
+             \AttributeTok{size =}\NormalTok{ CIGPDAY,}
+             \AttributeTok{color =}\NormalTok{ SexNew)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.3}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_colorblind}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{facet\_grid}\NormalTok{(. }\SpecialCharTok{\textasciitilde{}}\NormalTok{ SexNew) }\SpecialCharTok{+}
+  \FunctionTok{guides}\NormalTok{(}\AttributeTok{color =} \StringTok{"none"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Diastolic by Systolic pressure"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Diastolic BP (mmHg)"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Systolic BP (mmHg)"}\NormalTok{,}
+       \AttributeTok{caption =} \StringTok{"Data Source: Framington Heart Study, https://www.framinghamheartstudy.org/"}\NormalTok{,}
+       \AttributeTok{size =} \StringTok{"Cigarettes Smoked daily"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"bottom"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Intermediate-ggplot2_files/figure-latex/unnamed-chunk-9-1.pdf}
+
+Add a line of best fit corresponding to a simple linear regression model
+fit separately for males and females using geom\_smooth().
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{framinghamSub }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ SYSBP, }\AttributeTok{y =}\NormalTok{ DIABP,}
+             \AttributeTok{size =}\NormalTok{ CIGPDAY,}
+             \AttributeTok{color =}\NormalTok{ SexNew)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.3}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_smooth}\NormalTok{(}\AttributeTok{method =} \StringTok{"lm"}\NormalTok{, }\AttributeTok{se =} \ConstantTok{FALSE}\NormalTok{,}
+              \AttributeTok{color =} \StringTok{"\#0076B6"}\NormalTok{, }\AttributeTok{size =} \FloatTok{0.8}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_colorblind}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{facet\_grid}\NormalTok{(. }\SpecialCharTok{\textasciitilde{}}\NormalTok{ SexNew) }\SpecialCharTok{+}
+  \FunctionTok{guides}\NormalTok{(}\AttributeTok{color =} \StringTok{"none"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Diastolic by Systolic pressure"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Diastolic BP (mmHg)"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Systolic BP (mmHg)"}\NormalTok{,}
+       \AttributeTok{caption =} \StringTok{"Data Source: Framington Heart Study, https://www.framinghamheartstudy.org/"}\NormalTok{,}
+       \AttributeTok{size =} \StringTok{"Cigarettes Smoked daily"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"bottom"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Intermediate-ggplot2_files/figure-latex/unnamed-chunk-10-1.pdf}
+
+Add the estimated regression equations to each sub-plot using the ggpubr
+package and adding a stat\_regline\_equation(label.x = 210, label.y =
+40, size = 3.2) layer.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{framinghamSub }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ SYSBP, }\AttributeTok{y =}\NormalTok{ DIABP,}
+             \AttributeTok{size =}\NormalTok{ CIGPDAY,}
+             \AttributeTok{color =}\NormalTok{ SexNew)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.3}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_smooth}\NormalTok{(}\AttributeTok{method =} \StringTok{"lm"}\NormalTok{, }\AttributeTok{se =} \ConstantTok{FALSE}\NormalTok{,}
+              \AttributeTok{color =} \StringTok{"\#0076B6"}\NormalTok{, }\AttributeTok{size =} \FloatTok{0.8}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_colorblind}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{facet\_grid}\NormalTok{(. }\SpecialCharTok{\textasciitilde{}}\NormalTok{ SexNew) }\SpecialCharTok{+}
+  \FunctionTok{guides}\NormalTok{(}\AttributeTok{color =} \StringTok{"none"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Diastolic by Systolic pressure"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Diastolic BP (mmHg)"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Systolic BP (mmHg)"}\NormalTok{,}
+       \AttributeTok{caption =} \StringTok{"Data Source: Framington Heart Study \& the riskCommunicator package }\SpecialCharTok{\textbackslash{}n}\StringTok{ https://www.framinghamheartstudy.org/"}\NormalTok{,}
+       \AttributeTok{size =} \StringTok{"Cigarettes Smoked daily"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{stat\_regline\_equation}\NormalTok{(}\AttributeTok{label.x =} \DecValTok{210}\NormalTok{,}\AttributeTok{label.y =} \DecValTok{40}\NormalTok{,}\AttributeTok{size =} \FloatTok{3.2}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"bottom"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Intermediate-ggplot2_files/figure-latex/unnamed-chunk-11-1.pdf}
+
+\hypertarget{boxplots}{%
+\subsection{Boxplots}\label{boxplots}}
+
+Next, create a side-by-side box-plot where the y-axis is total
+cholesterol (TOTCHOL) and the x-axis is current smoking status
+(CURSMOKE). Increase the font size for the axes and title text in the
+plot
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# creating a side{-}by{-}side box plots}
+\NormalTok{framinghamSub }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ CurSmokeNew, }\AttributeTok{y =}\NormalTok{ TOTCHOL, }\AttributeTok{fill =}\NormalTok{ CurSmokeNew)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_boxplot}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{scale\_fill\_manual}\NormalTok{(}\AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\StringTok{"royalblue"}\NormalTok{,}\StringTok{"mediumseagreen"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Total Cholesterol by smoking status"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Serum Total Cholesterol (mg/dL)"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Current Smoker"}\NormalTok{,}
+       \AttributeTok{caption =} \StringTok{"Data Source: Framington Heart Study \& the riskCommunicator package }\SpecialCharTok{\textbackslash{}n}\StringTok{ https://www.framinghamheartstudy.org/"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_few}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{16}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"none"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Intermediate-ggplot2_files/figure-latex/unnamed-chunk-12-1.pdf}
+
+Color the boxes based on smoking status by manually specifying the
+colors to be ``mediumseagreen'' and ``royalblue'', remove the legend,
+and make the title and axis titles bold.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# creating a side{-}by{-}side box plots}
+\NormalTok{framinghamSub }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ CurSmokeNew, }\AttributeTok{y =}\NormalTok{ TOTCHOL, }\AttributeTok{fill =}\NormalTok{ CurSmokeNew)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_boxplot}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{scale\_fill\_manual}\NormalTok{(}\AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\StringTok{"royalblue"}\NormalTok{,}\StringTok{"mediumseagreen"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Total Cholesterol by smoking status"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Serum Total Cholesterol (mg/dL)"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Current Smoker"}\NormalTok{,}
+       \AttributeTok{caption =} \StringTok{"Data Source: Framington Heart Study \& the riskCommunicator package }\SpecialCharTok{\textbackslash{}n}\StringTok{ https://www.framinghamheartstudy.org/"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_few}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{16}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"none"}\NormalTok{, }
+        \AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{, }\AttributeTok{color =} \StringTok{"red"}\NormalTok{),}
+        \AttributeTok{axis.title.x =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{),}
+        \AttributeTok{axis.title.y =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Intermediate-ggplot2_files/figure-latex/unnamed-chunk-13-1.pdf}
+
+In a new plot, modify the side-by-side box-plots we created to be
+faceted by the sex of the participant using the facet\_grid() function
+and columns to break up the subplots.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# creating a side{-}by{-}side box plots}
+\NormalTok{framinghamSub }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ CurSmokeNew, }\AttributeTok{y =}\NormalTok{ TOTCHOL, }\AttributeTok{fill =}\NormalTok{ CurSmokeNew)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_boxplot}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{facet\_grid}\NormalTok{(. }\SpecialCharTok{\textasciitilde{}}\NormalTok{ SexNew) }\SpecialCharTok{+}
+  \FunctionTok{scale\_fill\_manual}\NormalTok{(}\AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\StringTok{"royalblue"}\NormalTok{,}\StringTok{"mediumseagreen"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Total Cholesterol by smoking status"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Serum Total Cholesterol (mg/dL)"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Current Smoker"}\NormalTok{,}
+       \AttributeTok{caption =} \StringTok{"Data Source: Framington Heart Study \& the riskCommunicator package }\SpecialCharTok{\textbackslash{}n}\StringTok{ https://www.framinghamheartstudy.org/"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_few}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{16}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"none"}\NormalTok{, }
+        \AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{, }\AttributeTok{color =} \StringTok{"red"}\NormalTok{),}
+        \AttributeTok{axis.title.x =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{),}
+        \AttributeTok{axis.title.y =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Intermediate-ggplot2_files/figure-latex/unnamed-chunk-14-1.pdf}
+
+\hypertarget{linechart}{%
+\subsection{Linechart}\label{linechart}}
+
+Make a line graph that shows the average cigarettes per day (CIGPDAY) by
+age (AGE), with separate lines by the sex of the participant (SEX).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{framinghamSub }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{ggplot}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{stat\_summary}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ AGE,}
+                   \AttributeTok{y =}\NormalTok{ CIGPDAY,}
+                   \AttributeTok{color =}\NormalTok{ SexNew,}
+                   \AttributeTok{group =}\NormalTok{ SexNew),}
+               \AttributeTok{geom =} \StringTok{"line"}\NormalTok{,}
+               \AttributeTok{fun.y =}\NormalTok{ mean,}
+               \AttributeTok{size =} \DecValTok{1}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_colorblind}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Average cigarettes per day by age and sex"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Average cigarettes per day"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Age (years)"}\NormalTok{,}
+       \AttributeTok{color =} \StringTok{"Sex"}\NormalTok{,}
+       \AttributeTok{caption =} \StringTok{"Data Source: Framington Heart Study \& the riskCommunicator package }\SpecialCharTok{\textbackslash{}n}\StringTok{ https://www.framinghamheartstudy.org/"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_few}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{16}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{, }\AttributeTok{color =} \StringTok{"red"}\NormalTok{),}
+        \AttributeTok{axis.title.x =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{),}
+        \AttributeTok{axis.title.y =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Intermediate-ggplot2_files/figure-latex/unnamed-chunk-15-1.pdf}
+
+\hypertarget{combining-plots-with-patchwork}{%
+\subsection{Combining plots with
+patchwork}\label{combining-plots-with-patchwork}}
+
+Combine the line chart and the faceted scatter plots together into a
+single graphic using the patchwork package, with 1 plot per row and the
+line chart on top.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{my\_linechart }\OtherTok{\textless{}{-}}\NormalTok{ framinghamSub }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{ggplot}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{stat\_summary}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ AGE,}
+                   \AttributeTok{y =}\NormalTok{ CIGPDAY,}
+                   \AttributeTok{color =}\NormalTok{ SexNew,}
+                   \AttributeTok{group =}\NormalTok{ SexNew),}
+               \AttributeTok{geom =} \StringTok{"line"}\NormalTok{,}
+               \AttributeTok{fun.y =}\NormalTok{ mean,}
+               \AttributeTok{size =} \DecValTok{1}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_colorblind}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Average cigarettes per day by age and sex"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Average cigarettes per day"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Age (years)"}\NormalTok{,}
+       \AttributeTok{color =} \StringTok{"Sex"}\NormalTok{,}
+       \AttributeTok{caption =} \StringTok{"Data Source: Framington Heart Study \& the riskCommunicator package }\SpecialCharTok{\textbackslash{}n}\StringTok{ https://www.framinghamheartstudy.org/"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_few}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{10}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{plot.title =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{, }\AttributeTok{color =} \StringTok{"red"}\NormalTok{),}
+        \AttributeTok{axis.title.x =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{),}
+        \AttributeTok{axis.title.y =} \FunctionTok{element\_text}\NormalTok{(}\AttributeTok{face =} \StringTok{"bold"}\NormalTok{))}
+
+\NormalTok{my\_scatterplot }\OtherTok{\textless{}{-}}\NormalTok{ framinghamSub }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ SYSBP, }\AttributeTok{y =}\NormalTok{ DIABP,}
+             \AttributeTok{size =}\NormalTok{ CIGPDAY,}
+             \AttributeTok{color =}\NormalTok{ SexNew)) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{alpha =} \FloatTok{0.3}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_smooth}\NormalTok{(}\AttributeTok{method =} \StringTok{"lm"}\NormalTok{, }\AttributeTok{se =} \ConstantTok{FALSE}\NormalTok{,}
+              \AttributeTok{color =} \StringTok{"\#0076B6"}\NormalTok{, }\AttributeTok{size =} \FloatTok{0.8}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_colorblind}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{facet\_grid}\NormalTok{(. }\SpecialCharTok{\textasciitilde{}}\NormalTok{ SexNew) }\SpecialCharTok{+}
+  \FunctionTok{guides}\NormalTok{(}\AttributeTok{color =} \StringTok{"none"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Diastolic by Systolic pressure"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Diastolic BP (mmHg)"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Systolic BP (mmHg)"}\NormalTok{,}
+       \AttributeTok{caption =} \StringTok{"Data Source: Framington Heart Study \& the riskCommunicator package }\SpecialCharTok{\textbackslash{}n}\StringTok{ https://www.framinghamheartstudy.org/"}\NormalTok{,}
+       \AttributeTok{size =} \StringTok{"Cigarettes Smoked daily"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{stat\_regline\_equation}\NormalTok{(}\AttributeTok{label.x =} \DecValTok{210}\NormalTok{,}\AttributeTok{label.y =} \DecValTok{40}\NormalTok{,}\AttributeTok{size =} \FloatTok{3.2}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"bottom"}\NormalTok{)}
+
+\FunctionTok{library}\NormalTok{(patchwork)}
+
+\NormalTok{my\_linechart }\SpecialCharTok{/}\NormalTok{ my\_scatterplot}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Intermediate-ggplot2_files/figure-latex/unnamed-chunk-16-1.pdf}
+
+\hypertarget{barchart}{%
+\subsection{Barchart}\label{barchart}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{framinghamSub }\OtherTok{\textless{}{-}}\NormalTok{ framinghamSub }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{mutate}\NormalTok{(}\AttributeTok{CholesterolCat =} \FunctionTok{case\_when}\NormalTok{(TOTCHOL }\SpecialCharTok{\textless{}} \DecValTok{200} \SpecialCharTok{\textasciitilde{}} \StringTok{"Normal"}\NormalTok{,}
+\NormalTok{                                    TOTCHOL }\SpecialCharTok{\textgreater{}=} \DecValTok{200} \SpecialCharTok{\&}\NormalTok{  TOTCHOL }\SpecialCharTok{\textless{}} \DecValTok{240} \SpecialCharTok{\textasciitilde{}} \StringTok{"Borderline high"}\NormalTok{,}
+\NormalTok{                                    TOTCHOL }\SpecialCharTok{\textgreater{}} \DecValTok{240} \SpecialCharTok{\textasciitilde{}} \StringTok{"High"}\NormalTok{,}
+                         \ConstantTok{TRUE} \SpecialCharTok{\textasciitilde{}} \FunctionTok{as.character}\NormalTok{(}\ConstantTok{NA}\NormalTok{)))}
+\end{Highlighting}
+\end{Shaded}
+
+Create a bar chart displaying the number of participants falling in each
+cholesterol category based on Johns Hopkins' definitions using
+geom\_bar(). Also, remove people under 40 and those without recorded
+cholesterol levels (missing values for CholesterolCat) from the plot by
+using the code filter(AGE \textgreater= 40, !is.na(CholesterolCat)) when
+piping the data into each subsequent ggplot() call.
+
+Recreate the bar chart, this time reordering the categories to show
+Normal, Borderline high, and then High from left to right using the
+fct\_relevel() function.
+
+Change the color of the inside of the bars based on the cholesterol
+category using a color-blind friendly palette, make the outline of the
+bars black in color, facet by the sex of the participant, and remove the
+legend.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{my\_bar }\OtherTok{\textless{}{-}}\NormalTok{ framinghamSub }\SpecialCharTok{|\textgreater{}} 
+  \FunctionTok{filter}\NormalTok{(AGE }\SpecialCharTok{\textgreater{}=} \DecValTok{40}\NormalTok{, }\SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(CholesterolCat)) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =} \FunctionTok{fct\_relevel}\NormalTok{(CholesterolCat,}\StringTok{"Normal"}\NormalTok{,}\StringTok{"Borderline high"}\NormalTok{, }\StringTok{"High"}\NormalTok{),}
+             \AttributeTok{fill =}\NormalTok{ CholesterolCat)) }\SpecialCharTok{+}
+  \FunctionTok{scale\_fill\_viridis\_d}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{geom\_bar}\NormalTok{(}\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+} 
+  \FunctionTok{facet\_grid}\NormalTok{(.}\SpecialCharTok{\textasciitilde{}}\NormalTok{SexNew) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Distribution of Cholesterol levels"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Cholesterol category"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Frequency"}\NormalTok{,}
+       \AttributeTok{caption =} \StringTok{"Data Source: Framington Heart Study \& the riskCommunicator package }\SpecialCharTok{\textbackslash{}n}\StringTok{ https://www.framinghamheartstudy.org/"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"none"}\NormalTok{)}
+
+\NormalTok{my\_bar}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Intermediate-ggplot2_files/figure-latex/unnamed-chunk-18-1.pdf}
+
+Remove the extra space between the bars and the horizontal axis.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{my\_bar }\OtherTok{\textless{}{-}}\NormalTok{ my\_bar }\SpecialCharTok{+}
+  \FunctionTok{scale\_y\_continuous}\NormalTok{(}\AttributeTok{expand =} \FunctionTok{expansion}\NormalTok{(}\AttributeTok{mult =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\FloatTok{0.1}\NormalTok{)))}
+
+\NormalTok{my\_bar}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Intermediate-ggplot2_files/figure-latex/unnamed-chunk-19-1.pdf}
+
+Lastly, use the coor\_flip() function to turn the bar chart into a
+horizontal bar chart instead.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{my\_bar }\SpecialCharTok{+}
+  \FunctionTok{coord\_flip}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Intermediate-ggplot2_files/figure-latex/unnamed-chunk-20-1.pdf}
+
+Recreate the line chart below showing the median BMI by age for smokers
+and non-smokers. Hint: use a scale\_color\_manual() layer to match the
+colors.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{framinghamSub }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{ggplot}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{stat\_summary}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ AGE,}
+                   \AttributeTok{y =}\NormalTok{ BMI,}
+                   \AttributeTok{color =}\NormalTok{ CurSmokeNew,}
+                   \AttributeTok{group =}\NormalTok{ CurSmokeNew),}
+               \AttributeTok{geom =} \StringTok{"line"}\NormalTok{,}
+               \AttributeTok{fun.y =}\NormalTok{ median,}
+               \AttributeTok{size =} \DecValTok{1}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{scale\_color\_manual}\NormalTok{(}\AttributeTok{values =} \FunctionTok{c}\NormalTok{(}\StringTok{"mediumseagreen"}\NormalTok{,}\StringTok{"royalblue"}\NormalTok{)) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Median BMI by age and smoking status"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{"Median Body Mass Index"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Age (years)"}\NormalTok{,}
+       \AttributeTok{color =} \StringTok{"Current Smoker"}\NormalTok{,}
+       \AttributeTok{caption =} \StringTok{"Data Source: Framington Heart Study \& the riskCommunicator package }\SpecialCharTok{\textbackslash{}n}\StringTok{ https://www.framinghamheartstudy.org/"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme\_few}\NormalTok{(}\AttributeTok{base\_size =} \DecValTok{16}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"bottom"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{xlim}\NormalTok{(}\DecValTok{40}\NormalTok{,}\DecValTok{70}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Intermediate-ggplot2_files/figure-latex/unnamed-chunk-21-1.pdf}
+
+We can use scale\_x\_continuous(limits = c(40,70)) or xlim(40,70) or
+dplyr::filter(between(AGE.40,70))
+
+Recreate the faceted dumbbell chart below showing the same information
+as the faceted bar chart. Hint: One way to create a dumbbell chart is to
+use geom\_point(size = 4, pch = 21) and geom\_line().
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{framinghamSub }\SpecialCharTok{|\textgreater{}} 
+\NormalTok{  dplyr}\SpecialCharTok{::}\FunctionTok{count}\NormalTok{(CholesterolCat,SexNew,}\AttributeTok{.drop =} \ConstantTok{FALSE}\NormalTok{) }\SpecialCharTok{|\textgreater{}}
+\NormalTok{  dplyr}\SpecialCharTok{::}\FunctionTok{filter}\NormalTok{( }\SpecialCharTok{!}\FunctionTok{is.na}\NormalTok{(CholesterolCat)) }\SpecialCharTok{|\textgreater{}}
+  \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ n,}\AttributeTok{y =}\NormalTok{ SexNew, }\AttributeTok{color =}\NormalTok{ CholesterolCat, }\AttributeTok{fill =}\NormalTok{ CholesterolCat)) }\SpecialCharTok{+} 
+  \FunctionTok{scale\_fill\_viridis\_d}\NormalTok{() }\SpecialCharTok{+}
+  \FunctionTok{geom\_line}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{group =}\NormalTok{ SexNew),}\AttributeTok{color =} \StringTok{"black"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{geom\_point}\NormalTok{(}\AttributeTok{color =} \StringTok{"black"}\NormalTok{,}\AttributeTok{size =} \DecValTok{4}\NormalTok{, }\AttributeTok{pch =} \DecValTok{21}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{labs}\NormalTok{(}\AttributeTok{title =} \StringTok{"Distribution of Cholesterol levels"}\NormalTok{,}
+       \AttributeTok{x =} \StringTok{"Frequency"}\NormalTok{,}
+       \AttributeTok{y =} \StringTok{""}\NormalTok{,}
+       \AttributeTok{color =} \StringTok{"Cholesterol category:"}\NormalTok{,}
+       \AttributeTok{caption =} \StringTok{"Data Source: Framington Heart Study \& the riskCommunicator package }\SpecialCharTok{\textbackslash{}n}\StringTok{ https://www.framinghamheartstudy.org/"}\NormalTok{) }\SpecialCharTok{+}
+  \FunctionTok{theme}\NormalTok{(}\AttributeTok{legend.position =} \StringTok{"bottom"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Intermediate-ggplot2_files/figure-latex/unnamed-chunk-22-1.pdf}
+
+\end{document}

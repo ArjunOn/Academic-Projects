@@ -1,0 +1,526 @@
+---
+title: "Data Transformations & Manipulation with dplyr"
+author: "Arjun Mannem"
+date: "`r format(Sys.Date(), '%A, %B %d, %Y')`"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(knitr)
+library(skimr)
+```
+
+Download the CSV file miFlights2019-2021.csv from Blackboard, and import it into R creating an object called miFlights.
+
+```{r}
+miFlights <- read.csv("miFlights2019-2021.csv")
+```
+
+Use the skim() function to explore characteristics of the data set.
+
+```{r}
+skim(miFlights)
+```
+
+Create a bar chart showing how many flights departed out of each airport (origin) using the count() and geom_col() functions. 
+
+```{r}
+miFlights %>% 
+  count(origin) %>% 
+  ggplot(aes(x = origin, y = n)) +
+  geom_col()
+```
+
+```{r}
+library(scales)
+
+miFlights %>% 
+  count(origin) %>% 
+  ggplot(aes(x = origin, y = n)) +
+  scale_y_continuous(labels = label_comma()) +
+  geom_col()
+```
+
+Also sort the bars by descending height using the fct_reorder() function.
+
+```{r}
+library(scales)
+
+miFlights %>% 
+  count(origin) %>% 
+  ggplot(aes(x = fct_reorder(origin,n,.desc = TRUE), y = n)) +
+  scale_y_continuous(labels = label_comma()) +
+  geom_col() +
+  labs(title = "Michigan flights, 2019-2021",
+       x = "Origin airport",
+       y = "Number of Flights",
+       caption = "Data source: the anyFlights R package") +
+  ggthemes::theme_few()
+  
+```
+
+
+```{r}
+library(scales)
+
+miFlights %>% 
+  count(origin) %>% 
+  ggplot(aes(x = fct_reorder(origin,n,.desc = TRUE), y = n,
+             fill = origin)) +
+  scale_y_continuous(labels = label_comma(),
+                     expand = expansion(mult = c(0,0.1))) +
+  geom_col(color = "black") +
+  scale_fill_viridis_d() +
+  labs(title = "Michigan flights, 2019-2021",
+       x = "Origin airport",
+       y = "Number of Flights",
+       caption = "Data source: the anyFlights R package") +
+  ggthemes::theme_few() +
+  theme(legend.position = "none")
+  
+```
+
+
+
+
+
+Reproduce the same bar chart using geom_bar(). Hint: one way to sort the bars by height with geom_bar() is to use the fct_infreq() function.
+
+```{r}
+library(scales)
+
+miFlights %>%
+  #count(origin) %>% 
+  ggplot(aes(x = fct_infreq(origin, ordered = FALSE), 
+         fill = origin)) +
+  geom_bar(color = "black") +
+  #ggplot(aes(x = fct_reorder(origin,n,.desc = TRUE), y = n, fill = origin)) +
+  scale_y_continuous(labels = label_comma(),
+                     expand = expansion(mult = c(0,0.1))) +
+  #geom_col(color = "black") +
+  scale_fill_viridis_d() +
+  labs(title = "Michigan flights, 2019-2021",
+       x = "Origin airport",
+       y = "Number of Flights",
+       caption = "Data source: the anyFlights R package") +
+  ggthemes::theme_few() +
+  theme(legend.position = "none")
+  
+```
+
+
+
+## Fundamental dplyr functions
+
+`filter()` pick observations by their values
+
+
+```{r}
+janFlights <- miFlights |>
+  dplyr::filter(month == 1,day == 1)
+
+dec25 <- miFlights |>
+  dplyr::filter(month == 12,day == 25)
+
+# All flights in Nov and Dec
+novDec <- miFlights |>
+  dplyr::filter(month == 11 | month == 12)
+
+#OR
+novDec2 <- miFlights |>
+  dplyr::filter(month %in% c(11,12))
+
+summer_flights <- miFlights |>
+  dplyr::filter(month %in% 6:8)
+
+summer_flights
+```
+
+Select all flights except those in the months of November and December using !
+
+```{r}
+notNovDec <- miFlights |>
+  filter(!(month %in% c(11,12)))
+notNovDec
+#unique(notNovDec$month)
+```
+
+Knowing that arr_delay and dep_delay represent the arrival and departure delays in minutes respectively, what data set is produced using the code below?
+
+```{r}
+dplyr::filter(miFlights, !(arr_delay > 120 | dep_delay > 120))
+```
+ 
+Create a new object called miFlightsComplete where all departure times are non-missing, and miFlightsMiss where all departure times are missing
+
+``` {r}
+miFlightsComplete <- miFlights |>
+  filter(!(is.na(dep_time)))
+
+miFlightsMiss <- miFlights |>
+  filter(is.na(dep_time))
+
+count(miFlightsComplete)
+miFlightsMiss
+```
+
+Sort miFlights by the day of the flight (smallest to largest), and print the first 4 columns and 5 rows of the resulting data set using the slice_head() function.
+
+```{r}
+library(gt)
+
+miFlights |>
+  arrange(day) |>
+  slice_head(n = 5) |>
+  select(1:4) |>
+  gt()
+```
+
+
+```{r}
+miFlights |>
+  arrange(desc(day)) |> # we can use arrange(-day) as well for numeric variables
+  slice_head(n = 5) |>
+  select(1:4) |>
+  gt()
+
+```
+
+Sort miFlights by the year, month, and day of the flight
+
+```{r}
+miFlights |>
+  arrange(year, month, day)
+```
+
+Sort miFlights to find the 3 most delayed flights (arr_delay), and the 3 that left the earliest relative to their scheduled departure (dep_delay).
+
+
+```{r}
+miFlights |>
+  arrange(desc(arr_delay)) |>
+  slice_head(n = 3)
+```
+
+
+```{r}
+
+miFlights |>
+  arrange(dep_delay) |>
+  slice_head(n = 3)
+```
+
+Sort miFlights to find the fastest (highest speed) flights.
+
+```{r}
+miFlights |>
+  arrange(desc(distance / air_time))
+```
+
+For flights coming out of GRR, find the 3 flights that traveled the farthest (distance) and that arrived the earliest in the morning (arr_time) simultaneously.
+
+```{r}
+miFlights |>
+  dplyr::filter(origin == "GRR") |>
+  arrange(desc(distance),arr_time) |>
+  slice_head(n=3)
+```
+
+
+## The `select()` function
+
+Drop the year and month columns from miFlights creating a new data set called miDropped.
+
+```{r}
+miDropped <- miFlights |>
+  dplyr::select(-year,-month)
+miDropped
+```
+
+Drop all variables between year and day columns (inclusive) from miFlights creating a new data set called miDropped2.
+
+```{r}
+miDropped2 <- miFlights |>
+  dplyr::select(!(year:day))
+miDropped2
+```
+
+
+Create a subset of the miFlights data set called timeFlights that only contains variables that end with the word “time”.
+
+```{r}
+timeFlights <- miFlights |>
+  dplyr::select(ends_with("time"))
+
+timeFlights
+```
+
+
+Create a new data frame called departureInfo that only has variables that start with “dep”
+
+```{r}
+departureInfo <- miFlights |>
+  dplyr::select(starts_with("dep"))
+
+departureInfo
+```
+
+
+
+
+
+
+Create a new data frame call newFlights by rearranging the columns of the full miFlights data set so that flight number (flight), origin (origin), and destination (dest) are provided first, then all other columns except the tail number (tailnum).
+
+```{r}
+newFlights <- miFlights |> 
+  dplyr::select(flight,origin,dest,everything(),-tailnum)
+
+newFlights
+```
+
+
+## Add new variables with mutate()
+
+We can create a new variable, gain, that is a function of existing variables in miFlights:
+
+```{r}
+flights_sml <- miFlights |> dplyr::select(ends_with("delay"), distance, air_time)
+
+flights_sml |> mutate(gain = dep_delay - arr_delay) |> 
+  slice_head(n = 5)
+```
+
+
+Extending the code provided with a single call to mutate(), create a new variable, speed, that is equal to distance divided by air_time, producing a new data set called flightSpeeds:
+
+```{r}
+flightSpeeds <- flights_sml |> mutate(speed = distance / air_time * 60)
+flightSpeeds <- flightSpeeds |> mutate(gain = dep_delay - arr_delay)
+
+```
+
+
+Create a plot showing the relationship between the speed and time gain of each flight, adding appropriate axis and title labels.
+
+```{r}
+library(ggplot2)
+
+flightSpeeds |>
+  ggplot(aes(x = speed,
+             y = gain)) +
+  geom_point() 
+```
+
+```{r}
+flightSpeeds |>
+  slice_sample(n=10000) |>
+  ggplot(aes(x = speed,
+             y = gain,
+             color = distance)) +
+  geom_point(alpha = 0.1) +
+  labs(title = "Michigan Flights, 2019-2021",
+       x = "Flight speed (miles per hour)",
+       y = "Gain (Minutes)",
+       caption = "Data Source: anyflights R package") +
+  ggthemes::theme_few() +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+flightSpeeds |>
+  ggplot(aes(x = speed,
+             y = gain,
+             color = distance)) +
+  geom_point(alpha = 0.1) +
+  labs(title = "Michigan Flights, 2019-2021",
+       x = "Flight speed (miles per hour)",
+       y = "Gain (Minutes)",
+       caption = "Data Source: anyflights R package") +
+  ggthemes::theme_few()
+```
+
+```{r}
+miFlights |> group_by(year, month, day) |> 
+summarize(delay = mean(dep_delay, na.rm = TRUE)) |> 
+  ungroup() |>
+  slice_head(n = 5)
+```
+
+Let’s see which airlines tend to have the worst delays. The code below creates a summary table containing the average flight delay in minutes for each carrier.
+
+```{r}
+delaySummary <- miFlights |> group_by(carrier_name) |> 
+  summarize(Delay = mean(arr_delay, na.rm = TRUE))
+
+delaySummary
+```
+
+
+Reproduce the waterfall plot below using this summary table and the colors c("#D55E00", "#0072B2").
+
+```{r}
+delaySummary |>
+  ggplot(aes(x = fct_reorder(carrier_name,Delay,.desc = FALSE),
+         y = Delay,
+         fill = Delay > 0)) +
+  geom_col() +
+  scale_fill_manual(values = c("#D55E00", "#0072B2")) +
+  labs(x = "Carrier",
+         y = "Delay (Minutes)",
+         title = "Average Flight delays by Carrier",
+         subtitle = "Michigan Flights 2019-2021",
+       caption = "Data Source: anyFlights R package") +
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 45,
+                                   hjust = 1),
+        title = element_text(face = "bold")) +
+  theme(legend.position = "none" )
+```
+
+Create a data frame summarizing the median flight delay (arr_delay) by month. Which month has the worst delays? In which month are flights most early / on-time?
+
+```{r}
+# Calculating average delay by carrier
+avg_monthly_delay <- miFlights |> 
+  group_by(month) |> 
+  summarize(Delay = median(arr_delay, na.rm = T))
+# Creating waterfall plot
+avg_monthly_delay |>
+  ggplot(aes(x = month,
+             y = Delay)) +
+  geom_line() +
+  scale_x_continuous(breaks = 1:12) +
+  labs(title = "Median flight delay by month",
+       subtitle =  "Michigan flights 2019-2021",
+       y = "Median arrival delay (minutes)",
+       x = "Month",
+       caption = "Data source: anyflights R package") +
+  theme_bw() +
+       theme(title = element_text(face = "bold"))
+```
+
+Which type of plot would be most useful for displaying the typical delay each month? Creating and viewing this plot, are there any apparent trends?
+
+```{r}
+# Creating boxplot for typical delay each month
+miFlights %>%
+  ggplot(aes(x = factor(month), y = arr_delay)) +
+  geom_boxplot() +
+  labs(title = "Typical Flight Delay Each Month",
+       subtitle = "Michigan Flights, 2019-2021",
+       x = "Month",
+       y = "Arrival Delay (minutes)",
+       caption = "Data source: anyFlights R package") +
+  theme_bw()
+
+```
+
+
+Extend the plot in 2. by faceting by where the flight departed from (origin). You will need to use group_by() again to do this. What are your observations?
+
+```{r}
+median_monthly_delay <- miFlights |> group_by(origin,month) |> 
+  summarize(Delay = median(arr_delay, na.rm = TRUE))
+
+median_monthly_delay |>
+  ggplot(aes(x = month,
+             y = Delay)) +
+  geom_line() +
+  scale_x_continuous(breaks = 1:12) +
+  facet_grid(origin ~ .) +
+  labs(x = "Month",
+         y = "Delay (Minutes)",
+         title = "Median Flight delays by Month",
+         subtitle = "Michigan Flights 2019-2021",
+       caption = "Data Source: anyFlights R package") +
+  theme_bw() + 
+  theme(title = element_text(face = "bold")) 
+```
+
+
+## More about missing values
+
+Use the gg_miss_var() function from the naniar package to visualize missingness for each variable individually using a lollipop chart.
+
+
+```{r}
+library(naniar)
+
+miFlights |>
+  gg_miss_var(show_pct = TRUE) +
+  labs(title = "Missingness for Michigan Flights data") +
+  ggthemes::theme_few() 
+  
+```
+
+
+Reproduce the visualization below using the facet argument with gg_miss_var().
+
+```{r}
+
+miFlights |>
+  gg_miss_var(facet = origin,show_pct = TRUE) +
+  labs(title = "Missingness for Michigan Flights data") +
+  ggthemes::theme_few() 
+  
+```
+
+```{r}
+
+facet_lollipop <- miFlights |>
+  gg_miss_var(facet = origin,show_pct = TRUE) +
+  labs(title = "Missingness for Michigan Flights data") +
+  ggthemes::theme_few() 
+  
+ggsave(facet_lollipop, filename = "saved_lollipop.png",height = 10,width = 7,units = "in")
+
+
+```
+
+![](saved_lollipop.png)
+
+
+Another way to visualize this missingness is using the gg_miss_fct() function from the naniar package. Recreate the mosaic plot showing missingness for each variable depending on the origin airport using the gg_miss_fct() function.
+
+```{r}
+
+miFlights |>
+  dplyr::select(contains("time"),origin,carrier,dest,contains("delay")) |>
+  gg_miss_fct(fct = origin) 
+  
+```
+
+Use the gg_miss_upset() function to visualize the joint missingness of variables related to the weather.
+```{r}
+
+miFlights |>
+  dplyr::select(temp,dewp,visib,pressure,humid,precip,contains("wind")) |>
+  gg_miss_upset(nsets=9) 
+  
+```
+
+Use the gg_miss_fct() function from the naniar package to visualize missingness for each variable depending on the carrier.
+
+```{r}
+miFlights |>
+  dplyr::select(contains("time"),origin,carrier,dest,contains("delay")) |>
+  gg_miss_fct(fct = carrier) 
+  
+```
+
+Use the gg_miss_upset() function to visualize the joint missingness of variables related to delays by selecting the variables dep_time through arr_delay.
+
+```{r}
+
+miFlights |>
+  dplyr::select(dep_time:arr_delay) |>
+  gg_miss_upset(nsets = 6) 
+  
+```
